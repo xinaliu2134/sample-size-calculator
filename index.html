@@ -1213,6 +1213,7 @@
       <button class="sub-tab" onclick="showSub('comparison','twomean')" id="stab-twomean">Two Means</button>
       <button class="sub-tab" onclick="showSub('comparison','kprop')" id="stab-kprop">k Proportions</button>
       <button class="sub-tab" onclick="showSub('comparison','paired')" id="stab-paired">Paired (McNemar)</button>
+      <button class="sub-tab" onclick="showSub('comparison','pairedmean')" id="stab-pairedmean">Paired Means</button>
     </div>
     <div class="sub-panel active" id="sub-twoprop">
 
@@ -1308,12 +1309,16 @@
               <div class="f-title" id="p2-formula-title">Applied Formula</div>
               <div class="f-content" id="p2-formula-applied">—</div>
             </div>
+            <div id="p2-power-curve" style="display:none;margin-top:16px;">
+              <div class="f-title" id="p2-curve-title" style="margin-bottom:8px;">Power Curve</div>
+              <svg id="p2-power-svg" width="100%" viewBox="0 0 360 220" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);"></svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  
-    
+
+
     </div>
     <div class="sub-panel" id="sub-twomean">
 
@@ -1620,6 +1625,91 @@
     </div>
     </div>
 
+    <div class="sub-panel" id="sub-pairedmean">
+    <div class="panel-header">
+      <h2 id="pm-title">Paired Means (Paired t-test)</h2>
+      <p class="desc" id="pm-desc">Sample size for comparing paired continuous outcomes (e.g., pre-post measurements, crossover trials). Based on the expected mean difference and its standard deviation.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="input-section">
+          <div class="input-section-header" id="pm-params">Parameters</div>
+          <div class="input-section-body">
+            <div class="field-group">
+              <label id="pm-delta-label">Expected Mean Difference (&delta;)</label>
+              <input type="number" id="pm-delta" value="5" step="0.1">
+              <div class="help-text" id="pm-delta-help">The clinically meaningful difference between paired measurements.</div>
+            </div>
+            <div class="field-group">
+              <label id="pm-sd-label">SD of Paired Differences (&sigma;<sub>d</sub>)</label>
+              <input type="number" id="pm-sd" value="15" min="0.001" step="0.1">
+              <div class="help-text" id="pm-sd-help">Standard deviation of within-pair differences. Estimate from pilot data or literature.</div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="pm-alpha-label">Significance Level (&alpha;)</label>
+                <select id="pm-alpha">
+                  <option value="0.05">0.05 &mdash; Standard</option>
+                  <option value="0.01">0.01 &mdash; Strict</option>
+                  <option value="0.10">0.10 &mdash; Liberal</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label id="pm-power-label">Power (1-&beta;)</label>
+                <select id="pm-power">
+                  <option value="0.80">0.80 &mdash; Standard</option>
+                  <option value="0.90">0.90 &mdash; High</option>
+                  <option value="0.85">0.85</option>
+                  <option value="0.95">0.95 &mdash; Very High</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-group">
+              <label id="pm-sides-label">Test Type</label>
+              <select id="pm-sides">
+                <option value="2">Two-sided (default)</option>
+                <option value="1">One-sided</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label id="pm-attrition-label">Attrition (%)</label>
+              <input type="number" id="pm-attrition" value="10" min="0" max="50" step="1">
+            </div>
+          </div>
+        </div>
+        <button class="calculate-btn" onclick="calcPairedMean()" id="pm-btn">&#9654; CALCULATE</button>
+        <div class="error-msg" id="pm-error"></div>
+        <div class="theory-card" style="margin-top:20px">
+          <h3 id="pm-theory-title">Statistical Theory</h3>
+          <p id="pm-theory-text">The paired t-test compares two related measurements on the same subjects. By analyzing the within-pair differences, it controls for between-subject variability. The sample size depends on the expected mean difference and the SD of paired differences, which is typically smaller than individual SDs due to within-pair correlation.</p>
+          <p id="pm-formula-text"><strong>Formula (Chow, Shao &amp; Wang 2008):</strong><br>n = (Z<sub>&alpha;/2</sub> + Z<sub>&beta;</sub>)&sup2; &times; &sigma;<sub>d</sub>&sup2; / &delta;&sup2;<br><br><strong>References:</strong> Chow SC, Shao J, Wang H (2008) <em>Sample Size Calculations in Clinical Research</em>, 2nd ed. Chapman &amp; Hall/CRC.</p>
+        </div>
+      </div>
+      <div class="result-panel">
+        <div class="result-header" id="pm-result-title">RESULT</div>
+        <div class="result-body">
+          <div class="result-empty" id="pm-empty"><span class="icon">&#128300;</span><span id="pm-empty-text">Enter parameters and click Calculate</span></div>
+          <div class="result-main" id="pm-result">
+            <div class="result-number">
+              <div class="label" id="pm-n-label">NUMBER OF PAIRS</div>
+              <div class="value" id="pm-n">&mdash;</div>
+              <div class="unit" id="pm-unit">pairs (subjects) needed</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-row"><span class="d-label" id="pm-r1-l">Pairs (unadjusted)</span><span class="d-value" id="pm-npairs">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="pm-r2-l">Attrition-adjusted</span><span class="d-value" id="pm-nadj">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="pm-r3-l">Effect size (Cohen's d)</span><span class="d-value" id="pm-cohend">&mdash;</span></div>
+            </div>
+            <div class="formula-box">
+              <div class="f-title" id="pm-formula-title">Applied Formula</div>
+              <div class="f-content" id="pm-formula-applied">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
   </div>
   <!-- ====== GROUP: OBSERVATIONAL ====== -->
   <div class="group-panel" id="group-observational">
@@ -1686,7 +1776,7 @@
         <div class="theory-card" style="margin-top:20px">
           <h3 id="p5-theory-title">Epidemiological Basis</h3>
           <p id="p5-theory-text">In cohort studies, the Relative Risk (RR = p₁/p₀) is the primary measure of association. The Kelsey formula or Schlesselman formula for cohort studies uses the average proportion p̄ = (p₁ + cp₀)/(1+c) where c is the allocation ratio.</p>
-          <p id="p5-formula-text"><strong>Attributable Risk:</strong> AR = p₁ - p₀<br><strong>Population AR%:</strong> PAR% = (RR-1)/RR × prevalence × 100</p>
+          <p id="p5-formula-text"><strong>Attributable Risk:</strong> AR = p₁ - p₀<br><strong>Population AR% (Levin):</strong> PAR% = p<sub>e</sub>(RR-1) / [p<sub>e</sub>(RR-1) + 1] × 100</p>
         </div>
       </div>
       <div class="result-panel">
@@ -3173,7 +3263,7 @@ const i18n = {
     'p5-r4-l': 'Relative Risk (RR)', 'p5-r5-l': 'Attributable Risk (AR)',
     'p5-theory-title': 'Epidemiological Basis',
     'p5-theory-text': 'In cohort studies, the Relative Risk (RR = p₁/p₀) is the primary measure of association. The Kelsey formula uses the average proportion p̄ = (p₁ + cp₀)/(1+c) where c is the allocation ratio.',
-    'p5-formula-text': '<strong>Attributable Risk:</strong> AR = p₁ - p₀<br><strong>Population AR%:</strong> PAR% = (RR-1)/RR × prevalence × 100',
+    'p5-formula-text': '<strong>Attributable Risk:</strong> AR = p₁ - p₀<br><strong>Population AR% (Levin):</strong> PAR% = p<sub>e</sub>(RR-1) / [p<sub>e</sub>(RR-1) + 1] × 100',
     'p6-title': 'Case-Control Study (Odds Ratio)', 'p6-desc': 'Retrospective study design comparing exposure history between cases and controls. Especially efficient for rare diseases.',
     'p6-params': 'Parameters', 'p6-p0-label': 'Exposure in Controls (p₀)', 'p6-p0-help': 'Proportion exposed among controls',
     'p6-or-label': 'Expected Odds Ratio (OR)', 'p6-or-help': 'OR > 1 = positive association',
@@ -3307,6 +3397,24 @@ const i18n = {
     'mn-theory-title': 'Statistical Theory',
     'mn-theory-text': 'McNemar\'s test assesses marginal homogeneity in matched-pair data with binary outcomes. Only discordant pairs contribute information. The sample size depends on the proportion of discordant pairs and the ratio of the two types of discordant pairs.',
     'mn-formula-text': '<strong>Formula (Connor 1987):</strong><br>n = [Zα/2 + Zβ]² × p_d × (1 + 1/OR)² / (1 − 1/OR)²<br><strong>References:</strong> Connor RJ (1987); McNemar Q (1947)',
+    'stab-pairedmean': 'Paired Means',
+    'pm-title': 'Paired Means (Paired t-test)',
+    'pm-desc': 'Sample size for comparing paired continuous outcomes (e.g., pre-post measurements, crossover trials). Based on the expected mean difference and its standard deviation.',
+    'pm-params': 'Parameters',
+    'pm-delta-label': 'Expected Mean Difference (δ)',
+    'pm-delta-help': 'The clinically meaningful difference between paired measurements.',
+    'pm-sd-label': 'SD of Paired Differences (σ<sub>d</sub>)',
+    'pm-sd-help': 'Standard deviation of within-pair differences. Estimate from pilot data or literature.',
+    'pm-alpha-label': 'Significance Level (α)', 'pm-power-label': 'Power (1-β)',
+    'pm-sides-label': 'Test Type', 'pm-attrition-label': 'Attrition (%)',
+    'pm-btn': '▶ CALCULATE', 'pm-result-title': 'RESULT',
+    'pm-empty-text': 'Enter parameters and click Calculate',
+    'pm-n-label': 'NUMBER OF PAIRS', 'pm-unit': 'pairs (subjects) needed',
+    'pm-r1-l': 'Pairs (unadjusted)', 'pm-r2-l': 'Attrition-adjusted', 'pm-r3-l': 'Effect size (Cohen\'s d)',
+    'pm-formula-title': 'Applied Formula',
+    'pm-theory-title': 'Statistical Theory',
+    'pm-theory-text': 'The paired t-test compares two related measurements on the same subjects. By analyzing the within-pair differences, it controls for between-subject variability.',
+    'pm-formula-text': '<strong>Formula (Chow, Shao & Wang 2008):</strong><br>n = (Z<sub>α/2</sub> + Z<sub>β</sub>)² × σ<sub>d</sub>² / δ²<br><strong>References:</strong> Chow SC, Shao J, Wang H (2008)',
     'sni-title': 'Non-Inferiority Survival Trial',
     'sni-desc': 'Sample size for non-inferiority trials with time-to-event endpoints. Based on the Schoenfeld (1983) formula with non-inferiority margin on the hazard ratio scale.',
     'sni-params': 'Parameters',
@@ -3401,6 +3509,10 @@ const i18n = {
     'ft-email-btn-text': 'Contact Us',
     'ft-copyright': '© 2026 Dr. Nana Liu. All rights reserved.',
     'ft-disclaimer': 'This tool is intended for statistical planning purposes only. All sample size estimates should be reviewed by a qualified statistician or biostatistician prior to use in regulatory submissions, clinical trial protocols, or grant applications.',
+    'ft-tools-title': 'MedResearch Tools',
+    'ft-link-rand': 'Clinical Randomization Tool',
+    'ft-link-sda': 'Study Design Assistant',
+    'p2-curve-title': 'Power Curve',
   },
   zh: {
     'h-title': '样本量计算器',
@@ -3482,7 +3594,7 @@ const i18n = {
     'p5-r4-l': '相对危险度 (RR)', 'p5-r5-l': '归因危险度（AR）',
     'p5-theory-title': '流行病学原理',
     'p5-theory-text': '队列研究以相对危险度（RR = p₁/p₀）为核心关联指标。Kelsey 公式采用加权平均比例 p̄ = (p₁ + cp₀)/(1+c)，其中 c 为非暴露与暴露的人数之比。',
-    'p5-formula-text': '<strong>归因危险度：</strong> AR = p₁ - p₀<br><strong>人群归因危险度%：</strong> PAR% = (RR-1)/RR × 患病率 × 100',
+    'p5-formula-text': '<strong>归因危险度：</strong> AR = p₁ - p₀<br><strong>人群归因危险度%（Levin 公式）：</strong> PAR% = p<sub>e</sub>(RR-1) / [p<sub>e</sub>(RR-1) + 1] × 100',
     'p6-title': '病例对照研究（比值比）', 'p6-desc': '回顾性研究设计，比较病例和对照之间的暴露史。对罕见病尤为高效。',
     'p6-params': '参数设置', 'p6-p0-label': '对照组暴露率 (p₀)', 'p6-p0-help': '对照组中暴露者的比例',
     'p6-or-label': '预期比值比 (OR)', 'p6-or-help': 'OR > 1 = 正向关联',
@@ -3637,6 +3749,24 @@ const i18n = {
     'mn-theory-title': '统计学原理',
     'mn-theory-text': 'McNemar 检验评估配对数据中边际齐性。只有不一致对贡献信息。样本量取决于不一致比例和两种不一致对的比值。',
     'mn-formula-text': '<strong>Connor (1987) 公式：</strong><br>n = [Zα/2 + Zβ]² × p_d × (1 + 1/OR)² / (1 − 1/OR)²<br><strong>参考文献：</strong> Connor RJ (1987)；McNemar Q (1947)',
+    'stab-pairedmean': '配对均数',
+    'pm-title': '配对均数（配对 t 检验）',
+    'pm-desc': '适用于配对连续型结局（如前后测量、交叉试验）的样本量计算。基于预期均数差及其标准差。',
+    'pm-params': '参数设置',
+    'pm-delta-label': '预期均数差 (δ)',
+    'pm-delta-help': '配对测量之间的临床意义差异。',
+    'pm-sd-label': '配对差值的标准差 (σ<sub>d</sub>)',
+    'pm-sd-help': '配对内差值的标准差。根据预试验数据或文献估计。',
+    'pm-alpha-label': '显著性水平 (α)', 'pm-power-label': '统计效能 (1-β)',
+    'pm-sides-label': '检验类型', 'pm-attrition-label': '失访率 (%)',
+    'pm-btn': '▶ 开始计算', 'pm-result-title': '计算结果',
+    'pm-empty-text': '输入参数后点击计算',
+    'pm-n-label': '所需配对数', 'pm-unit': '对（受试者）',
+    'pm-r1-l': '配对数（未调整）', 'pm-r2-l': '失访调整后', 'pm-r3-l': '效应量（Cohen\'s d）',
+    'pm-formula-title': '应用公式',
+    'pm-theory-title': '统计学原理',
+    'pm-theory-text': '配对 t 检验比较同一受试者上的两次相关测量。通过分析配对内差值，控制了受试者间变异。样本量取决于预期均数差和配对差值的标准差。',
+    'pm-formula-text': '<strong>Chow, Shao & Wang (2008) 公式：</strong><br>n = (Z<sub>α/2</sub> + Z<sub>β</sub>)² × σ<sub>d</sub>² / δ²<br><strong>参考文献：</strong> Chow SC, Shao J, Wang H (2008)',
     'sni-title': '非劣效性生存试验',
     'sni-desc': '适用于时间-事件终点的非劣效性试验样本量计算。基于 Schoenfeld (1983) 公式加非劣效性界值修正。',
     'sni-params': '参数设置',
@@ -3731,6 +3861,10 @@ const i18n = {
     'ft-email-btn-text': '联系我们',
     'ft-copyright': '© 2026 刘娜博士 版权所有。',
     'ft-disclaimer': '本工具仅供统计规划参考，所有样本量估算结果在用于监管申报、临床试验方案或科研资助申请前，应由具备资质的统计学家或生物统计学家进行审核确认。',
+    'ft-tools-title': '医学研究工具',
+    'ft-link-rand': '临床随机化工具',
+    'ft-link-sda': '研究设计助手',
+    'p2-curve-title': '效能曲线',
   }
 };
 
@@ -3761,6 +3895,11 @@ function setLang(l) {
   if (tpSides) {
     tpSides.options[0].text = l === 'zh' ? '双侧（默认）' : 'Two-sided (default)';
     tpSides.options[1].text = l === 'zh' ? '单侧' : 'One-sided';
+  }
+  const pmSides = document.getElementById('pm-sides');
+  if (pmSides) {
+    pmSides.options[0].text = l === 'zh' ? '双侧（默认）' : 'Two-sided (default)';
+    pmSides.options[1].text = l === 'zh' ? '单侧' : 'One-sided';
   }
   // RCT selects
   const rpType = document.getElementById('rp-type');
@@ -3834,7 +3973,7 @@ function showSub(group, subId) {
 function showTab(id) {
   const map = {
     proportion:['prevalence','proportion'], mean:['prevalence','mean'],
-    twoprop:['comparison','twoprop'], twomean:['comparison','twomean'], kprop:['comparison','kprop'], paired:['comparison','paired'],
+    twoprop:['comparison','twoprop'], twomean:['comparison','twomean'], kprop:['comparison','kprop'], paired:['comparison','paired'], pairedmean:['comparison','pairedmean'],
     cohort:['observational','cohort'], casecontrol:['observational','casecontrol'],
     'rct-parallel':['rct','rct-parallel'], 'rct-crossover':['rct','rct-crossover'], 'rct-cluster':['rct','rct-cluster'],
     'surv-logrank':['survival','surv-logrank'], 'surv-ni':['survival','surv-ni'],
@@ -3853,13 +3992,16 @@ function showTab(id) {
 function getZ(alpha, sides = 2) {
   const a = parseFloat(alpha);
   const aAdj = sides === 1 ? a : a / 2;
-  const zTable = { 0.0005: 3.291, 0.005: 2.807, 0.01: 2.576, 0.025: 1.960, 0.05: 1.645, 0.1: 1.282 };
-  return zTable[aAdj] || 1.960;
+  // Use proper inverse normal instead of lookup table
+  const z = normQuantile(1 - aAdj);
+  return z;
 }
 
 function getZb(power) {
-  const zTable = { 0.50: 0, 0.80: 0.842, 0.85: 1.036, 0.90: 1.282, 0.95: 1.645, 0.99: 2.326 };
-  return zTable[parseFloat(power)] || 0.842;
+  const p = parseFloat(power);
+  // Use proper inverse normal instead of lookup table
+  const z = normQuantile(p);
+  return z;
 }
 
 function updateZDisplays() {
@@ -3986,6 +4128,95 @@ function calcTwoProp() {
     'p2-h': h.toFixed(3),
     'p2-rr': rr
   }, `n₁ = ${n1}, n₂ = ${n2}, Total = ${total} → Adjusted: ${totalAdj}`);
+
+  // Draw power curve
+  drawPowerCurve(n1, p1, p2, alpha, ratio, sides, power);
+}
+
+function drawPowerCurve(nCalc, p1, p2, alpha, ratio, sides, targetPower) {
+  const svg = document.getElementById('p2-power-svg');
+  const container = document.getElementById('p2-power-curve');
+  if (!svg || !container) return;
+  container.style.display = 'block';
+
+  const W = 360, H = 220;
+  const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+  const plotW = W - margin.left - margin.right;
+  const plotH = H - margin.top - margin.bottom;
+
+  // Generate power for a range of n values
+  const nMin = Math.max(5, Math.floor(nCalc / 3));
+  const nMax = Math.ceil(nCalc * 2.5);
+  const steps = 50;
+  const points = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const n = Math.round(nMin + (nMax - nMin) * i / steps);
+    const pw = computePowerTwoProp(n, p1, p2, alpha, ratio, sides);
+    points.push({ n, power: pw });
+  }
+
+  // Scale functions
+  const xScale = (n) => margin.left + (n - nMin) / (nMax - nMin) * plotW;
+  const yScale = (p) => margin.top + (1 - p) * plotH;
+
+  let svgContent = '';
+
+  // Grid lines
+  for (let p = 0; p <= 1; p += 0.2) {
+    const y = yScale(p);
+    svgContent += `<line x1="${margin.left}" y1="${y}" x2="${W - margin.right}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+    svgContent += `<text x="${margin.left - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="var(--text-muted)" font-family="DM Mono">${p.toFixed(1)}</text>`;
+  }
+
+  // X axis labels
+  const nStep = Math.ceil((nMax - nMin) / 5);
+  for (let n = nMin; n <= nMax; n += nStep) {
+    const x = xScale(n);
+    svgContent += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${H - margin.bottom}" stroke="var(--border)" stroke-width="0.5"/>`;
+    svgContent += `<text x="${x}" y="${H - margin.bottom + 14}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="DM Mono">${n}</text>`;
+  }
+
+  // Axis labels
+  svgContent += `<text x="${W / 2}" y="${H - 4}" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="DM Mono">n per group</text>`;
+  svgContent += `<text x="12" y="${H / 2}" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="DM Mono" transform="rotate(-90, 12, ${H / 2})">Power</text>`;
+
+  // Target power horizontal line
+  const targetY = yScale(targetPower);
+  svgContent += `<line x1="${margin.left}" y1="${targetY}" x2="${W - margin.right}" y2="${targetY}" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  svgContent += `<text x="${W - margin.right + 2}" y="${targetY + 3}" font-size="8" fill="var(--gold)" font-family="DM Mono">${targetPower}</text>`;
+
+  // Power curve
+  let pathD = '';
+  points.forEach((pt, i) => {
+    const x = xScale(pt.n);
+    const y = yScale(pt.power);
+    pathD += (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  svgContent += `<path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+
+  // Calculated point marker
+  const calcPower = computePowerTwoProp(nCalc, p1, p2, alpha, ratio, sides);
+  const cx = xScale(nCalc);
+  const cy = yScale(calcPower);
+  svgContent += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="var(--accent)" stroke="white" stroke-width="1.5"/>`;
+  svgContent += `<text x="${cx.toFixed(1)}" y="${cy.toFixed(1) - 8}" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="DM Mono" font-weight="500">n=${nCalc}</text>`;
+
+  // Border
+  svgContent += `<rect x="${margin.left}" y="${margin.top}" width="${plotW}" height="${plotH}" fill="none" stroke="var(--border)" stroke-width="0.5"/>`;
+
+  svg.innerHTML = svgContent;
+}
+
+function computePowerTwoProp(n1, p1, p2, alpha, ratio, sides) {
+  const za = getZ(alpha, sides);
+  const n2 = Math.ceil(n1 / ratio);
+  const pb = (n1 * p1 + n2 * p2) / (n1 + n2);
+  const se0 = Math.sqrt(pb * (1 - pb) * (1 / n1 + 1 / n2));
+  const se1 = Math.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2);
+  if (se1 === 0) return 1;
+  const z = (Math.abs(p1 - p2) - za * se0) / se1;
+  return normCDF(z);
 }
 
 // === ONE MEAN ===
@@ -4037,6 +4268,8 @@ function calcTwoMean() {
 
   const za = getZ(alpha);
   const zb = getZb(power);
+  // Formula: n1 = (Za + Zb)^2 * (σ1² + σ2²/r) / δ² where r = n1/n2
+  // n1 is the larger group when ratio > 1
   const n1 = Math.ceil(Math.pow(za + zb, 2) * (sd1 * sd1 + sd2 * sd2 / ratio) / (delta * delta));
   const n2 = Math.ceil(n1 / ratio);
   const total = n1 + n2;
@@ -4196,8 +4429,9 @@ function calcRCTParallel() {
 
   const isNI = type === 'noninferiority';
   const isEquiv = type === 'equivalence';
-  // Non-inferiority uses one-sided alpha; equivalence uses two-sided but doubles n
-  const za = isNI ? getZ(alpha * 2) : getZ(alpha); // one-sided for NI: use alpha directly as one-sided
+  // NI uses one-sided alpha → pass alpha*2 to getZ so it divides by 2 internally, yielding Z for one-sided alpha
+  // Equivalence and superiority use two-sided alpha directly
+  const za = isNI ? getZ(alpha * 2) : getZ(alpha);
   const zb = getZb(power);
 
   let nt, nc, effectStr, nntStr = 'N/A', formulaStr;
@@ -4212,21 +4446,10 @@ function calcRCTParallel() {
     if (isNI || isEquiv) {
       const margin = parseFloat(document.getElementById('rp-margin').value);
       if (margin <= 0) return showError('rp', 'Margin Δ must be positive.');
-      // NI: H0: p1 - p0 < -Δ; we test if p1 > p0 - Δ
-      // Use one-sided Z for NI
-      const zaUsed = isNI ? getZ(alpha * 2) : za; // NI: one-sided
-      const pb = (pt + ratio * pc) / (1 + ratio);
-      const denom = isNI ? Math.pow(Math.abs(diff) + margin, 2) : Math.pow(margin - Math.abs(diff), 2);
-      if (denom <= 0) return showError('rp', 'Parameters produce undefined result. Check margin vs effect.');
-      nt = Math.ceil(
-        Math.pow(zaUsed * Math.sqrt((1 + 1/ratio) * pb * (1-pb)) + zb * Math.sqrt(pt*(1-pt) + pc*(1-pc)/ratio), 2)
-        / Math.pow(Math.abs(diff) + (isNI ? margin : 0), 2) // simplified; see below
-      );
-      // Proper NI formula:
-      // n = (Za + Zb)^2 * [p1(1-p1)/r + p0(1-p0)] / (|p1-p0| - delta)^2
-      // but use one-sided Za for NI, two-sided for equivalence * 2
+      // Formula: n = (Za + Zb)^2 * [p1(1-p1)/r + p0(1-p0)] / (margin - |diff|)^2
+      // NI: one-sided Za (already handled above); Equivalence: two-sided Za, then double n
       const num = Math.pow(za + zb, 2) * (pt*(1-pt)/ratio + pc*(1-pc));
-      const den = isNI ? Math.pow(margin - Math.abs(diff), 2) : Math.pow(margin - Math.abs(diff), 2);
+      const den = Math.pow(margin - Math.abs(diff), 2);
       if (den <= 0) return showError('rp', 'The observed difference equals the margin. Adjust parameters.');
       nt = Math.ceil(num / den);
       if (isEquiv) nt = nt * 2;
@@ -4377,16 +4600,15 @@ function calcRCTCluster() {
   }
 
   const nCluster = Math.ceil(nInd * deff);
-  const clustersPerArm = Math.ceil(nCluster / (m * arms) * arms); // per arm
-  const clustersPerArmFinal = Math.ceil(nCluster / m / (arms === 2 ? 1 : arms) );
-  const totalClusters = clustersPerArmFinal * arms;
+  const clustersPerArm = Math.ceil(nCluster / (m * arms));
+  const totalClusters = clustersPerArm * arms;
   const totalN = totalClusters * m;
   const totalAdj = adjustAttrition(totalN, attrition);
 
   showResult('rk', totalAdj, {
     'rk-nind': nInd.toLocaleString(),
     'rk-deff': deff.toFixed(3),
-    'rk-clusters-arm': clustersPerArmFinal.toLocaleString(),
+    'rk-clusters-arm': clustersPerArm.toLocaleString(),
     'rk-clusters-total': totalClusters.toLocaleString(),
     'rk-nadj': totalAdj.toLocaleString()
   }, formulaStr);
@@ -4456,24 +4678,26 @@ function lowerIncompleteGamma(a, x) {
 }
 
 function upperIncompleteGamma(a, x) {
-  // Continued fraction (Lentz)
-  let f = 1e-30, c = 1e-30, d = 0;
+  // Continued fraction (Lentz's method) for upper incomplete gamma
+  // Q(a,x) = e^(-x) * x^a * CF, where CF is evaluated via modified Lentz
+  const EPSILON = 1e-14;
+  let b = x + 1 - a;
+  let c = 1e30;
+  let d = 1 / b;
+  let h = d;
   for (let i = 1; i < 300; i++) {
-    const an = (i % 2 === 1) ? ((i - 1) / 2 + 1 - a) : (i / 2);
-    const bn = x + i - (i % 2 === 1 ? 0 : 0); // Simplified: use standard CF
-    // Actually use the standard Legendre CF
-    break; // fallback to series for safety
+    const an = -i * (i - a);
+    b += 2;
+    d = an * d + b;
+    if (Math.abs(d) < 1e-30) d = 1e-30;
+    c = b + an / c;
+    if (Math.abs(c) < 1e-30) c = 1e-30;
+    d = 1 / d;
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < EPSILON) break;
   }
-  // Fallback: Gamma(a) - lowerIncompleteGamma via series
-  // To avoid infinite recursion, use the series always:
-  let sum = 1 / a, term = 1 / a;
-  for (let n = 1; n < 300; n++) {
-    term *= x / (a + n);
-    sum += term;
-    if (Math.abs(term) < Math.abs(sum) * 1e-14) break;
-  }
-  const lowerIG = Math.exp(-x + a * Math.log(x) - lnGamma(a)) * sum;
-  return gammaFunc(a) - lowerIG;
+  return Math.exp(-x + a * Math.log(x) - lnGamma(a)) * h;
 }
 
 function gammaFunc(a) {
@@ -4511,8 +4735,9 @@ function calcKProp() {
   const props = [];
   for (let i = 1; i <= k; i++) {
     const v = parseFloat(document.getElementById('kp-p' + i)?.value);
-    if (isNaN(v) || v <= 0 || v >= 1)
+    if (isNaN(v) || v <= 0 || v >= 1) {
       document.getElementById('kp-error').textContent='All proportions must be between 0 and 1.'; return;
+    }
     props.push(v);
   }
   const alpha0    = parseFloat(document.getElementById('kp-alpha').value);
@@ -4527,8 +4752,9 @@ function calcKProp() {
   // Cohen's w
   const pbar = props.reduce((s, p) => s + p, 0) / k;
   const w = Math.sqrt(props.reduce((s, p) => s + (p - pbar) ** 2 / pbar, 0));
-  if (w < 0.001)
+  if (w < 0.001) {
     document.getElementById('kp-error').textContent='Proportions are too similar — effect size (w) is near zero.'; return;
+  }
 
   // Iterative: find n_per_group such that power(chi2_noncen) >= target
   const chiCrit = chiSqCrit(alphaUsed, df);
@@ -4620,6 +4846,35 @@ function calcMcNemar() {
     'mn-conc': nConc.toLocaleString(),
     'mn-or-disp': or.toFixed(2),
     'mn-nind': (n * 2).toLocaleString()
+  }, formula);
+}
+
+// === PAIRED MEANS (Paired t-test) ===
+function calcPairedMean() {
+  const delta = parseFloat(document.getElementById('pm-delta').value);
+  const sd = parseFloat(document.getElementById('pm-sd').value);
+  const alpha = parseFloat(document.getElementById('pm-alpha').value);
+  const power = parseFloat(document.getElementById('pm-power').value);
+  const sides = parseInt(document.getElementById('pm-sides').value);
+  const attrition = parseFloat(document.getElementById('pm-attrition').value);
+
+  if (sd <= 0) return showError('pm', 'Standard deviation must be positive.');
+  if (delta === 0) return showError('pm', 'Expected mean difference δ must be non-zero.');
+
+  const za = getZ(alpha, sides);
+  const zb = getZb(power);
+
+  // Chow, Shao & Wang (2008): n = (Zα/2 + Zβ)² × σd² / δ²
+  const n = Math.ceil(Math.pow(za + zb, 2) * sd * sd / (delta * delta));
+  const nAdj = adjustAttrition(n, attrition);
+  const cohend = (Math.abs(delta) / sd).toFixed(3);
+
+  const formula = `n = (Zα/2 + Zβ)² × σd² / δ²\n= (${za.toFixed(3)} + ${zb.toFixed(3)})² × ${sd}² / ${delta}²\n= ${n} pairs`;
+
+  showResult('pm', nAdj, {
+    'pm-npairs': n.toLocaleString(),
+    'pm-nadj': nAdj.toLocaleString(),
+    'pm-cohend': cohend + (parseFloat(cohend) < 0.2 ? ' (trivial)' : parseFloat(cohend) < 0.5 ? ' (small)' : parseFloat(cohend) < 0.8 ? ' (medium)' : ' (large)')
   }, formula);
 }
 
@@ -4859,7 +5114,11 @@ function calcCorrelation() {
     </div>
 
     <div style="grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 20px; margin-top: 20px; text-align: center;">
-      <p style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Created by Dr. Nana Liu | Contact: <a href="mailto:xinaliu@gmail.com" style="color: rgba(255,255,255,0.9);">xinaliu@gmail.com</a></p>
+      <p style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 8px;" id="ft-tools-title">MedResearch Tools</p>
+      <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">
+        <a href="../clinical-randomization/index.html" style="color: rgba(255,255,255,0.7);" id="ft-link-rand">Clinical Randomization Tool</a> &nbsp;|&nbsp;
+        <a href="../study-design-assistant/index.html" style="color: rgba(255,255,255,0.7);" id="ft-link-sda">Study Design Assistant</a>
+      </p>
       <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">By Dr. Nana Liu | PKU Medical &middot; Erasmus MC PhD</p>
       <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">If this tool was helpful, please cite: Liu, N. (2026). Sample Size Calculator.</p>
       <p style="font-size: 11px; color: rgba(255,255,255,0.5);"><a href="https://xinaliu2134.github.io/" style="color: rgba(255,255,255,0.7);">Back to main portfolio</a></p>
