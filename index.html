@@ -248,7 +248,7 @@
   .bib-title   { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
   .bib-authors { font-size: 11.5px; color: var(--text-muted); font-style: italic; }
   .bib-pub     { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-  .bib-note    { font-size: 11.5px; color: var(--text-secondary); line-height: 1.6; margin-top: 5px; }
+  .bib-note    { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; margin-top: 5px; }
   .bib-note code { font-family: 'DM Mono', monospace; font-size: 10.5px; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; }
 
   @keyframes fadeIn {
@@ -954,6 +954,19 @@
     40%     { transform: translateX(8px); }
     60%     { transform: translateX(-5px); }
     80%     { transform: translateX(5px); }
+  }
+
+  /* Print */
+  @media print {
+    header, .nav-bar, .calculate-btn, .floating-feedback, .ad-placeholder, .error-msg, .lang-toggle { display: none !important; }
+    .group-panel { display: block !important; }
+    .sub-panel { display: block !important; }
+    .result-panel { position: static; border: none; box-shadow: none; }
+    .container { padding: 0; max-width: 100%; }
+    .two-col { grid-template-columns: 1fr; }
+    body { background: white; }
+    .input-section { box-shadow: none; }
+    footer { margin-top: 24px; }
   }
 
 </style>
@@ -4597,7 +4610,7 @@ function calcRCTCluster() {
   }
 
   const nCluster = Math.ceil(nInd * deff);
-  const clustersPerArm = Math.ceil(nCluster / (m * arms));
+  const clustersPerArm = Math.ceil(nCluster / m);
   const totalClusters = clustersPerArm * arms;
   const totalN = totalClusters * m;
   const totalAdj = adjustAttrition(totalN, attrition);
