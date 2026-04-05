@@ -949,7 +949,7 @@
     .floating-feedback { bottom: 16px; right: 16px; padding: 10px 16px; }
   }
 
-  
+  @keyframes shake {
     20%     { transform: translateX(-8px); }
     40%     { transform: translateX(8px); }
     60%     { transform: translateX(-5px); }
@@ -1082,7 +1082,7 @@
         <div class="theory-card" style="margin-top:20px">
           <h3 id="p1-theory-title">Statistical Theory</h3>
           <p id="p1-theory-text">For precision-based estimation, the formula derives from the normal approximation to the binomial distribution. The margin of error d represents half the width of the confidence interval. For hypothesis testing, the formula accounts for both Type I (α) and Type II (β) error rates.</p>
-          <p id="p1-formula-text"><strong>Precision:</strong> n = Z²α/2 × p(1-p) / d²<br><strong>Hypothesis:</strong> n = [Zα/2√p̄(1-p̄) + Zβ√p(1-p)]² / (p-p₀)²</p>
+          <p id="p1-formula-text"><strong>Precision:</strong> n = Z²α/2 × p(1-p) / d²<br><strong>Hypothesis:</strong> n = [Zα/2√(p₀(1-p₀)) + Zβ√(p(1-p))]² / (p-p₀)²</p>
         </div>
       </div>
 
@@ -3206,7 +3206,7 @@ const i18n = {
     'p1-formula-title': 'Applied Formula',
     'p1-theory-title': 'Statistical Theory',
     'p1-theory-text': 'For precision-based estimation, the formula derives from the normal approximation to the binomial distribution. The margin of error d represents half the width of the confidence interval. For hypothesis testing, the formula accounts for both Type I (α) and Type II (β) error rates.',
-    'p1-formula-text': '<strong>Precision:</strong> n = Z²α/2 × p(1-p) / d²<br><strong>Hypothesis:</strong> n = [Zα/2√p̄(1-p̄) + Zβ√p(1-p)]² / (p-p₀)²',
+    'p1-formula-text': '<strong>Precision:</strong> n = Z²α/2 × p(1-p) / d²<br><strong>Hypothesis:</strong> n = [Zα/2√(p₀(1-p₀)) + Zβ√(p(1-p))]² / (p-p₀)²',
     'p2-title': 'Two Independent Proportions',
     'p2-desc': 'Compare two groups (e.g., treatment vs. control) on a binary outcome. Commonly used in RCTs and cohort studies.',
     'p2-params': 'Parameters', 'p2-p1-label': 'Proportion Group 1 (p₁)', 'p2-p1-help': 'Exposed / Treatment group',
@@ -3537,7 +3537,7 @@ const i18n = {
     'p1-formula-title': '应用公式',
     'p1-theory-title': '统计学原理',
     'p1-theory-text': '基于精度的估计公式源于二项分布的正态近似。误差范围 d 表示置信区间的半宽度。假设检验公式同时考虑 I 类错误（α）和 II 类错误（β）。',
-    'p1-formula-text': '<strong>精度法：</strong> n = Z²α/2 × p(1-p) / d²<br><strong>假设检验：</strong> n = [Zα/2√p̄(1-p̄) + Zβ√p(1-p)]² / (p-p₀)²',
+    'p1-formula-text': '<strong>精度法：</strong> n = Z²α/2 × p(1-p) / d²<br><strong>假设检验：</strong> n = [Zα/2√(p₀(1-p₀)) + Zβ√(p(1-p))]² / (p-p₀)²',
     'p2-title': '两独立样本比例比较',
     'p2-desc': '比较两组（如干预组 vs 对照组）的二分类结局。常用于随机对照试验和队列研究。',
     'p2-params': '参数设置', 'p2-p1-label': '第一组比例 (p₁)', 'p2-p1-help': '暴露组/干预组',
@@ -3978,11 +3978,7 @@ function showTab(id) {
     'rct-parallel':['rct','rct-parallel'], 'rct-crossover':['rct','rct-crossover'], 'rct-cluster':['rct','rct-cluster'],
     'surv-logrank':['survival','surv-logrank'], 'surv-ni':['survival','surv-ni'],
     'survey-finite':['survey','survey-finite'], 'survey-kappa':['survey','survey-kappa'], 'survey-corr':['survey','survey-corr'],
-    survival:['survival','surv-logrank'], reference:['reference',null],
-    nnt:['effect','nnt'], orrr:['effect','orrr'],
-    incprev:['incprev',null], diagnostic:['diagnostic',null],
-    chi2x2:['chisq','chi2x2'], chirxc:['chisq','chirxc'],
-    metabin:['meta','metabin'], metacont:['meta','metacont']
+    survival:['survival','surv-logrank'], reference:['reference',null]
   };
   const [group, sub] = map[id] || ['prevalence','proportion'];
   showGroup(group);
@@ -4050,7 +4046,8 @@ function showError(prefix, msg) {
 }
 
 function adjustAttrition(n, attrition) {
-  return Math.ceil(n / (1 - attrition / 100));
+  const rate = Math.min(attrition, 99) / 100;
+  return Math.ceil(n / (1 - rate));
 }
 
 // === ONE PROPORTION ===
@@ -4081,10 +4078,10 @@ function calcProp1() {
     const p0 = parseFloat(document.getElementById('prop1-p0').value);
     const power = parseFloat(document.getElementById('prop1-power').value);
     if (p0 <= 0 || p0 >= 1) return showError('p1', 'p₀ must be between 0 and 1.');
+    if (Math.abs(p - p0) < 0.001) return showError('p1', 'p and p₀ must be different.');
     const zb = getZb(power);
-    const pb = (p + p0) / 2;
-    n = Math.ceil(Math.pow(za * Math.sqrt(2 * pb * (1 - pb)) + zb * Math.sqrt(p * (1 - p) + p0 * (1 - p0)), 2) / Math.pow(p - p0, 2));
-    formula = `n = [Zα/2√(2p̄q̄) + Zβ√(p₁q₁+p₀q₀)]² / (p-p₀)²\n= ${n}`;
+    n = Math.ceil(Math.pow(za * Math.sqrt(p0 * (1 - p0)) + zb * Math.sqrt(p * (1 - p)), 2) / Math.pow(p - p0, 2));
+    formula = `n = [Zα/2√(p₀q₀) + Zβ√(pq)]² / (p-p₀)²\n= ${n}`;
     const nAdj = adjustAttrition(n, attrition);
     showResult('p1', nAdj, {
       'p1-n-base': n.toLocaleString(),
@@ -4736,7 +4733,7 @@ function calcKProp() {
   for (let i = 1; i <= k; i++) {
     const v = parseFloat(document.getElementById('kp-p' + i)?.value);
     if (isNaN(v) || v <= 0 || v >= 1) {
-      document.getElementById('kp-error').textContent='All proportions must be between 0 and 1.'; return;
+      return showError('kp', 'All proportions must be between 0 and 1.');
     }
     props.push(v);
   }
@@ -4753,7 +4750,7 @@ function calcKProp() {
   const pbar = props.reduce((s, p) => s + p, 0) / k;
   const w = Math.sqrt(props.reduce((s, p) => s + (p - pbar) ** 2 / pbar, 0));
   if (w < 0.001) {
-    document.getElementById('kp-error').textContent='Proportions are too similar — effect size (w) is near zero.'; return;
+    return showError('kp', 'Proportions are too similar — effect size (w) is near zero.');
   }
 
   // Iterative: find n_per_group such that power(chi2_noncen) >= target
@@ -4775,16 +4772,15 @@ function calcKProp() {
     '\nn per group = ' + n + '  →  total = ' + nTotal;
 
   // Show result in result-panel structure (matches other panels)
-  document.getElementById('kp-error').textContent = '';
-  document.getElementById('kp-empty').style.display  = 'none';
-  document.getElementById('kp-result').style.display = 'block';
-  document.getElementById('kp-n').textContent         = nAdj.toLocaleString();
-  document.getElementById('kp-per-group').textContent = n.toLocaleString();
-  document.getElementById('kp-nadj').textContent      = nAdj.toLocaleString();
-  document.getElementById('kp-w').textContent         = w.toFixed(4);
-  document.getElementById('kp-df').textContent        = String(df);
-  document.getElementById('kp-alpha-used').textContent = alphaLabel;
-  document.getElementById('kp-formula-applied').textContent = formula;
+  const errEl = document.getElementById('kp-error');
+  if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+  showResult('kp', nAdj, {
+    'kp-per-group': n.toLocaleString(),
+    'kp-nadj': nAdj.toLocaleString(),
+    'kp-w': w.toFixed(4),
+    'kp-df': String(df),
+    'kp-alpha-used': alphaLabel
+  }, formula);
 }
 
 // Chi-square critical value (Wilson-Hilferty)
