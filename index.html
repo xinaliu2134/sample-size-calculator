@@ -1004,6 +1004,7 @@
     <button class="nav-tab" onclick="showGroup('observational')" id="tab-observational">Observational Study</button>
     <button class="nav-tab" onclick="showGroup('rct')" id="tab-rct">Randomized Controlled Trial</button>
     <button class="nav-tab" onclick="showGroup('survival')" id="tab-survival">Survival Analysis</button>
+    <button class="nav-tab" onclick="showGroup('survey')" id="tab-survey">Survey & Descriptive</button>
     <button class="nav-tab" onclick="showGroup('reference')" id="tab-reference">Reference</button>
   </div>
 </div>
@@ -1211,6 +1212,7 @@
       <button class="sub-tab active" onclick="showSub('comparison','twoprop')" id="stab-twoprop">Two Proportions</button>
       <button class="sub-tab" onclick="showSub('comparison','twomean')" id="stab-twomean">Two Means</button>
       <button class="sub-tab" onclick="showSub('comparison','kprop')" id="stab-kprop">k Proportions</button>
+      <button class="sub-tab" onclick="showSub('comparison','paired')" id="stab-paired">Paired (McNemar)</button>
     </div>
     <div class="sub-panel active" id="sub-twoprop">
 
@@ -1542,6 +1544,82 @@
       </div>
     </div>
 </div>
+
+    <div class="sub-panel" id="sub-paired">
+    <div class="panel-header">
+      <h2 id="mn-title">Paired Design (McNemar's Test)</h2>
+      <p class="desc" id="mn-desc">Sample size for before/after or matched-pair studies with a binary outcome. Based on discordant pairs using McNemar's test.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="input-section">
+          <div class="input-section-header" id="mn-params">Parameters</div>
+          <div class="input-section-body">
+            <div class="field-group">
+              <label id="mn-pd-label">Discordant Proportion (p<sub>d</sub>) <span class="formula-hint">0–1</span></label>
+              <input type="number" id="mn-pd" value="0.30" min="0.01" max="0.99" step="0.01">
+              <div class="help-text" id="mn-pd-help">Proportion of pairs that are discordant (one positive, one negative). Estimate from pilot data or literature.</div>
+            </div>
+            <div class="field-group">
+              <label id="mn-or-label">Odds Ratio of Discordant Pairs (OR) <span class="formula-hint">&ne;1</span></label>
+              <input type="number" id="mn-or" value="2.0" min="0.01" step="0.1">
+              <div class="help-text" id="mn-or-help">Ratio of discordant pairs: (b/c) where b = +/- pairs and c = -/+ pairs.</div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="mn-alpha-label">Significance Level (&alpha;)</label>
+                <select id="mn-alpha">
+                  <option value="0.05">0.05 — Standard</option>
+                  <option value="0.01">0.01 — Strict</option>
+                  <option value="0.10">0.10 — Liberal</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label id="mn-power-label">Power (1-&beta;)</label>
+                <select id="mn-power">
+                  <option value="0.80">0.80 — Standard</option>
+                  <option value="0.90">0.90 — High</option>
+                  <option value="0.85">0.85</option>
+                  <option value="0.95">0.95 — Very High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="calculate-btn" onclick="calcMcNemar()" id="mn-btn">&#9654; CALCULATE</button>
+        <div class="error-msg" id="mn-error"></div>
+        <div class="theory-card" style="margin-top:20px">
+          <h3 id="mn-theory-title">Statistical Theory</h3>
+          <p id="mn-theory-text">McNemar's test assesses marginal homogeneity in matched-pair data with binary outcomes. Only discordant pairs (where the two members differ) contribute information. The sample size depends on the proportion of discordant pairs (p<sub>d</sub>) and the ratio of the two types of discordant pairs (OR = b/c).</p>
+          <p id="mn-formula-text"><strong>Formula (Connor 1987):</strong><br>n = [Z<sub>&alpha;/2</sub> + Z<sub>&beta;</sub>]&sup2; &times; p<sub>d</sub> &times; (1 + 1/OR)&sup2; / (1 &minus; 1/OR)&sup2;<br><br><strong>References:</strong> Connor RJ (1987) <em>Biometrics</em> 43:207-211; McNemar Q (1947) <em>Psychometrika</em> 12:153-157</p>
+        </div>
+      </div>
+      <div class="result-panel">
+        <div class="result-header" id="mn-result-title">RESULT</div>
+        <div class="result-body">
+          <div class="result-empty" id="mn-empty"><span class="icon">&#128300;</span><span id="mn-empty-text">Enter parameters and click Calculate</span></div>
+          <div class="result-main" id="mn-result">
+            <div class="result-number">
+              <div class="label" id="mn-n-label">TOTAL MATCHED PAIRS</div>
+              <div class="value" id="mn-n">&mdash;</div>
+              <div class="unit" id="mn-unit">matched pairs needed</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-row"><span class="d-label" id="mn-r1-l">Discordant pairs expected</span><span class="d-value" id="mn-disc">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="mn-r2-l">Concordant pairs expected</span><span class="d-value" id="mn-conc">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="mn-r3-l">Odds Ratio (input)</span><span class="d-value" id="mn-or-disp">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="mn-r4-l">Total individuals</span><span class="d-value" id="mn-nind">&mdash;</span></div>
+            </div>
+            <div class="formula-box">
+              <div class="f-title" id="mn-formula-title">Applied Formula</div>
+              <div class="f-content" id="mn-formula-applied">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
   </div>
   <!-- ====== GROUP: OBSERVATIONAL ====== -->
   <div class="group-panel" id="group-observational">
@@ -2115,7 +2193,11 @@
   </div>
   <!-- ====== GROUP: SURVIVAL ====== -->
   <div class="group-panel" id="group-survival">
-
+    <div class="sub-tab-bar">
+      <button class="sub-tab active" onclick="showSub('survival','surv-logrank')" id="stab-surv-logrank">Log-rank Test</button>
+      <button class="sub-tab" onclick="showSub('survival','surv-ni')" id="stab-surv-ni">Non-Inferiority Survival</button>
+    </div>
+    <div class="sub-panel active" id="sub-surv-logrank">
 
     <div class="panel-header">
       <h2 id="p7-title">Survival Analysis: Time-to-Event</h2>
@@ -2201,8 +2283,366 @@
         </div>
       </div>
     </div>
-  
-  
+    </div>
+
+    <div class="sub-panel" id="sub-surv-ni">
+    <div class="panel-header">
+      <h2 id="sni-title">Non-Inferiority Survival Trial</h2>
+      <p class="desc" id="sni-desc">Sample size for non-inferiority trials with time-to-event endpoints. Based on the Schoenfeld (1983) formula with non-inferiority margin on the hazard ratio scale.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="input-section">
+          <div class="input-section-header" id="sni-params">Parameters</div>
+          <div class="input-section-body">
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sni-hr0-label">Non-Inferiority Margin (HR<sub>NI</sub>) <span class="formula-hint">&gt;1</span></label>
+                <input type="number" id="sni-hr0" value="1.3" min="1.01" max="3.0" step="0.05">
+                <div class="help-text" id="sni-hr0-help">Maximum acceptable hazard ratio for non-inferiority. E.g., 1.3 means new treatment can be at most 30% worse.</div>
+              </div>
+              <div class="field-group">
+                <label id="sni-hr1-label">True Hazard Ratio (HR<sub>true</sub>) <span class="formula-hint">expected</span></label>
+                <input type="number" id="sni-hr1" value="1.0" min="0.1" max="3.0" step="0.05">
+                <div class="help-text" id="sni-hr1-help">Expected true HR under H1. Typically 1.0 (equal efficacy) for NI trials.</div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sni-sc-label">Control Median Survival (months)</label>
+                <input type="number" id="sni-sc" value="24" min="1" step="1">
+                <div class="help-text" id="sni-sc-help">Median survival time in the control arm (months).</div>
+              </div>
+              <div class="field-group">
+                <label id="sni-ratio-label">Allocation Ratio (T:C)</label>
+                <input type="number" id="sni-ratio" value="1" min="0.5" max="4" step="0.5">
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sni-alpha-label">Significance Level (&alpha;, one-sided)</label>
+                <select id="sni-alpha">
+                  <option value="0.025">0.025 — Standard (one-sided)</option>
+                  <option value="0.05">0.05</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label id="sni-power-label">Power (1-&beta;)</label>
+                <select id="sni-power">
+                  <option value="0.80">0.80 — Standard</option>
+                  <option value="0.90">0.90 — High</option>
+                  <option value="0.85">0.85</option>
+                  <option value="0.95">0.95 — Very High</option>
+                </select>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sni-accrual-label">Accrual Period (months)</label>
+                <input type="number" id="sni-accrual" value="24" min="1" step="1">
+              </div>
+              <div class="field-group">
+                <label id="sni-follow-label">Additional Follow-up (months)</label>
+                <input type="number" id="sni-follow" value="12" min="0" step="1">
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="calculate-btn" onclick="calcSurvNI()" id="sni-btn">&#9654; CALCULATE</button>
+        <div class="error-msg" id="sni-error"></div>
+        <div class="theory-card" style="margin-top:20px">
+          <h3 id="sni-theory-title">Statistical Theory</h3>
+          <p id="sni-theory-text">Non-inferiority survival trials test H<sub>0</sub>: HR &ge; HR<sub>NI</sub> vs H<sub>1</sub>: HR &lt; HR<sub>NI</sub> using a one-sided test. The number of events is calculated via the Schoenfeld formula modified for the NI margin. The margin HR<sub>NI</sub> should preserve a clinically meaningful fraction of the active control's effect over placebo (FDA guidance recommends preserving &ge;50% of the historical effect).</p>
+          <p id="sni-formula-text"><strong>Events:</strong> E = (Z<sub>&alpha;</sub> + Z<sub>&beta;</sub>)&sup2; &times; (1+r)&sup2; / (r &times; [ln(HR<sub>NI</sub>) &minus; ln(HR<sub>true</sub>)]&sup2;)<br>where r = allocation ratio<br><br><strong>References:</strong> Schoenfeld DA (1983) <em>Biometrics</em>; FDA Guidance on Non-Inferiority Clinical Trials (2016)</p>
+        </div>
+      </div>
+      <div class="result-panel">
+        <div class="result-header" id="sni-result-title">RESULT</div>
+        <div class="result-body">
+          <div class="result-empty" id="sni-empty"><span class="icon">&#128300;</span><span id="sni-empty-text">Enter parameters and click Calculate</span></div>
+          <div class="result-main" id="sni-result">
+            <div class="result-number">
+              <div class="label" id="sni-n-label">TOTAL PARTICIPANTS</div>
+              <div class="value" id="sni-n">&mdash;</div>
+              <div class="unit" id="sni-unit">participants (both arms)</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-row"><span class="d-label" id="sni-r1-l">Events required (E)</span><span class="d-value" id="sni-events">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sni-r2-l">Treatment arm (n)</span><span class="d-value" id="sni-nt">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sni-r3-l">Control arm (n)</span><span class="d-value" id="sni-nc">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sni-r4-l">NI margin (HR)</span><span class="d-value" id="sni-margin-disp">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sni-r5-l">Expected event probability</span><span class="d-value" id="sni-ep">&mdash;</span></div>
+            </div>
+            <div class="formula-box">
+              <div class="f-title" id="sni-formula-title">Applied Formula</div>
+              <div class="f-content" id="sni-formula-applied">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+  </div>
+
+
+  <!-- ====== GROUP: SURVEY & DESCRIPTIVE ====== -->
+  <div class="group-panel" id="group-survey">
+    <div class="sub-tab-bar">
+      <button class="sub-tab active" onclick="showSub('survey','survey-finite')" id="stab-survey-finite">Finite Population</button>
+      <button class="sub-tab" onclick="showSub('survey','survey-kappa')" id="stab-survey-kappa">Agreement (Kappa)</button>
+      <button class="sub-tab" onclick="showSub('survey','survey-corr')" id="stab-survey-corr">Correlation</button>
+    </div>
+
+    <!-- === Finite Population Survey === -->
+    <div class="sub-panel active" id="sub-survey-finite">
+    <div class="panel-header">
+      <h2 id="sf-title">Finite Population Survey</h2>
+      <p class="desc" id="sf-desc">Sample size for estimating a proportion in a finite (known) population. Uses Cochran's formula with finite population correction (FPC).</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="input-section">
+          <div class="input-section-header" id="sf-params">Parameters</div>
+          <div class="input-section-body">
+            <div class="field-group">
+              <label id="sf-N-label">Population Size (N)</label>
+              <input type="number" id="sf-N" value="10000" min="10" step="1">
+              <div class="help-text" id="sf-N-help">Total number of individuals in the target population.</div>
+            </div>
+            <div class="field-group">
+              <label id="sf-p-label">Expected Proportion (p) <span class="formula-hint">0–1</span></label>
+              <input type="number" id="sf-p" value="0.50" min="0.01" max="0.99" step="0.01">
+              <div class="help-text" id="sf-p-help">Use 0.50 for maximum sample size (most conservative) when no prior estimate is available.</div>
+            </div>
+            <div class="field-group">
+              <label id="sf-e-label">Margin of Error (e) <span class="formula-hint">0–0.5</span></label>
+              <input type="number" id="sf-e" value="0.05" min="0.001" max="0.5" step="0.01">
+              <div class="help-text" id="sf-e-help">Desired precision, e.g., 0.05 = &plusmn;5%.</div>
+            </div>
+            <div class="field-group">
+              <label id="sf-cl-label">Confidence Level</label>
+              <select id="sf-cl">
+                <option value="0.95">95%</option>
+                <option value="0.99">99%</option>
+                <option value="0.90">90%</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="calculate-btn" onclick="calcFinitePop()" id="sf-btn">&#9654; CALCULATE</button>
+        <div class="error-msg" id="sf-error"></div>
+        <div class="theory-card" style="margin-top:20px">
+          <h3 id="sf-theory-title">Statistical Theory</h3>
+          <p id="sf-theory-text">Cochran's (1977) formula first calculates the infinite-population sample size n<sub>0</sub> = Z&sup2; &times; p(1-p) / e&sup2;, then applies the finite population correction: n = n<sub>0</sub> / [1 + (n<sub>0</sub> - 1) / N]. When N is large relative to n<sub>0</sub>, the correction is negligible. When N is small (e.g., &lt;500), the correction substantially reduces the required sample.</p>
+          <p id="sf-formula-text"><strong>Cochran's formula:</strong> n<sub>0</sub> = Z&sup2; &times; p(1&minus;p) / e&sup2;<br><strong>With FPC:</strong> n = n<sub>0</sub> / [1 + (n<sub>0</sub> &minus; 1) / N]<br><br><strong>Reference:</strong> Cochran WG (1977) <em>Sampling Techniques</em>, 3rd ed. Wiley.</p>
+        </div>
+      </div>
+      <div class="result-panel">
+        <div class="result-header" id="sf-result-title">RESULT</div>
+        <div class="result-body">
+          <div class="result-empty" id="sf-empty"><span class="icon">&#128300;</span><span id="sf-empty-text">Enter parameters and click Calculate</span></div>
+          <div class="result-main" id="sf-result">
+            <div class="result-number">
+              <div class="label" id="sf-n-label">REQUIRED SAMPLE SIZE</div>
+              <div class="value" id="sf-n">&mdash;</div>
+              <div class="unit" id="sf-unit">respondents</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-row"><span class="d-label" id="sf-r1-l">Infinite population n<sub>0</sub></span><span class="d-value" id="sf-n0">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sf-r2-l">FPC-adjusted n</span><span class="d-value" id="sf-nfpc">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sf-r3-l">Sampling fraction (n/N)</span><span class="d-value" id="sf-frac">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sf-r4-l">Population size (N)</span><span class="d-value" id="sf-N-disp">&mdash;</span></div>
+            </div>
+            <div class="formula-box">
+              <div class="f-title" id="sf-formula-title">Applied Formula</div>
+              <div class="f-content" id="sf-formula-applied">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- === Agreement Study (Kappa) === -->
+    <div class="sub-panel" id="sub-survey-kappa">
+    <div class="panel-header">
+      <h2 id="sk-title">Agreement Study (Kappa)</h2>
+      <p class="desc" id="sk-desc">Sample size for inter-rater reliability studies using Cohen's kappa. Tests whether agreement exceeds a specified threshold.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="input-section">
+          <div class="input-section-header" id="sk-params">Parameters</div>
+          <div class="input-section-body">
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sk-k1-label">Expected Kappa (&kappa;<sub>1</sub>) <span class="formula-hint">0–1</span></label>
+                <input type="number" id="sk-k1" value="0.70" min="0.01" max="0.99" step="0.01">
+                <div class="help-text" id="sk-k1-help">The kappa value you expect to observe (alternative hypothesis).</div>
+              </div>
+              <div class="field-group">
+                <label id="sk-k0-label">Null Kappa (&kappa;<sub>0</sub>) <span class="formula-hint">0–1</span></label>
+                <input type="number" id="sk-k0" value="0.40" min="0" max="0.99" step="0.01">
+                <div class="help-text" id="sk-k0-help">The kappa threshold to test against (null hypothesis). 0.40 = at least moderate agreement.</div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label id="sk-cat-label">Number of Categories (k)</label>
+              <select id="sk-cat">
+                <option value="2">2 (binary)</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+              <div class="help-text" id="sk-cat-help">Number of rating categories. Binary (2) is most common.</div>
+            </div>
+            <div class="field-group">
+              <label id="sk-prev-label">Prevalence of Positive Category <span class="formula-hint">0–1</span></label>
+              <input type="number" id="sk-prev" value="0.50" min="0.01" max="0.99" step="0.01">
+              <div class="help-text" id="sk-prev-help">Expected prevalence of the target category. Affects the variance of kappa. Use 0.50 if unknown.</div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sk-alpha-label">Significance Level (&alpha;)</label>
+                <select id="sk-alpha">
+                  <option value="0.05">0.05 — Standard</option>
+                  <option value="0.01">0.01 — Strict</option>
+                  <option value="0.10">0.10 — Liberal</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label id="sk-power-label">Power (1-&beta;)</label>
+                <select id="sk-power">
+                  <option value="0.80">0.80 — Standard</option>
+                  <option value="0.90">0.90 — High</option>
+                  <option value="0.85">0.85</option>
+                  <option value="0.95">0.95 — Very High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="calculate-btn" onclick="calcKappa()" id="sk-btn">&#9654; CALCULATE</button>
+        <div class="error-msg" id="sk-error"></div>
+        <div class="theory-card" style="margin-top:20px">
+          <h3 id="sk-theory-title">Statistical Theory</h3>
+          <p id="sk-theory-text">Cohen's kappa measures agreement beyond chance between two raters. The sample size formula uses the large-sample variance of kappa, which depends on the underlying prevalence and number of categories. The variance under H<sub>0</sub> and H<sub>1</sub> determines the required subjects to detect a kappa difference (&kappa;<sub>1</sub> &minus; &kappa;<sub>0</sub>).</p>
+          <p id="sk-formula-text"><strong>Formula (Donner &amp; Eliasziw 1992; Sim &amp; Wright 2005):</strong><br>n = [(Z<sub>&alpha;/2</sub>&radic;V<sub>0</sub> + Z<sub>&beta;</sub>&radic;V<sub>1</sub>) / (&kappa;<sub>1</sub> &minus; &kappa;<sub>0</sub>)]&sup2;<br>where V = variance of kappa<br><br><strong>References:</strong> Sim J, Wright CC (2005) <em>Phys Ther</em> 85:257-268; Donner A, Eliasziw M (1992) <em>Stat Med</em> 11:1511-1519</p>
+        </div>
+      </div>
+      <div class="result-panel">
+        <div class="result-header" id="sk-result-title">RESULT</div>
+        <div class="result-body">
+          <div class="result-empty" id="sk-empty"><span class="icon">&#128300;</span><span id="sk-empty-text">Enter parameters and click Calculate</span></div>
+          <div class="result-main" id="sk-result">
+            <div class="result-number">
+              <div class="label" id="sk-n-label">REQUIRED SUBJECTS</div>
+              <div class="value" id="sk-n">&mdash;</div>
+              <div class="unit" id="sk-unit">subjects rated by both raters</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-row"><span class="d-label" id="sk-r1-l">Expected kappa (&kappa;<sub>1</sub>)</span><span class="d-value" id="sk-k1-disp">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sk-r2-l">Null kappa (&kappa;<sub>0</sub>)</span><span class="d-value" id="sk-k0-disp">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sk-r3-l">Variance under H<sub>0</sub></span><span class="d-value" id="sk-v0">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sk-r4-l">Variance under H<sub>1</sub></span><span class="d-value" id="sk-v1">&mdash;</span></div>
+            </div>
+            <div class="formula-box">
+              <div class="f-title" id="sk-formula-title">Applied Formula</div>
+              <div class="f-content" id="sk-formula-applied">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- === Correlation Study === -->
+    <div class="sub-panel" id="sub-survey-corr">
+    <div class="panel-header">
+      <h2 id="sc-title">Correlation Study</h2>
+      <p class="desc" id="sc-desc">Sample size for testing whether a Pearson correlation coefficient differs from a null value. Uses Fisher's Z transformation.</p>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="input-section">
+          <div class="input-section-header" id="sc-params">Parameters</div>
+          <div class="input-section-body">
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sc-r1-label">Expected Correlation (r) <span class="formula-hint">-1 to 1</span></label>
+                <input type="number" id="sc-r1" value="0.40" min="-0.99" max="0.99" step="0.01">
+                <div class="help-text" id="sc-r1-help">The correlation you expect to observe in the population.</div>
+              </div>
+              <div class="field-group">
+                <label id="sc-r0-label">Null Correlation (r<sub>0</sub>) <span class="formula-hint">usually 0</span></label>
+                <input type="number" id="sc-r0" value="0" min="-0.99" max="0.99" step="0.01">
+                <div class="help-text" id="sc-r0-help">The correlation under the null hypothesis. Use 0 to test for any association.</div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="field-group">
+                <label id="sc-alpha-label">Significance Level (&alpha;)</label>
+                <select id="sc-alpha">
+                  <option value="0.05">0.05 — Standard</option>
+                  <option value="0.01">0.01 — Strict</option>
+                  <option value="0.10">0.10 — Liberal</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label id="sc-power-label">Power (1-&beta;)</label>
+                <select id="sc-power">
+                  <option value="0.80">0.80 — Standard</option>
+                  <option value="0.90">0.90 — High</option>
+                  <option value="0.85">0.85</option>
+                  <option value="0.95">0.95 — Very High</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-group">
+              <label id="sc-sides-label">Test Type</label>
+              <select id="sc-sides">
+                <option value="2">Two-sided (default)</option>
+                <option value="1">One-sided</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="calculate-btn" onclick="calcCorrelation()" id="sc-btn">&#9654; CALCULATE</button>
+        <div class="error-msg" id="sc-error"></div>
+        <div class="theory-card" style="margin-top:20px">
+          <h3 id="sc-theory-title">Statistical Theory</h3>
+          <p id="sc-theory-text">The sample distribution of Pearson's r is skewed, so Fisher's Z transformation is used: Z<sub>r</sub> = 0.5 &times; ln[(1+r)/(1-r)]. Under this transformation, the sampling distribution is approximately normal with variance 1/(n-3). The sample size formula inverts this relationship to find n given the desired detectable difference in correlations.</p>
+          <p id="sc-formula-text"><strong>Fisher Z transform:</strong> Z<sub>r</sub> = 0.5 &times; ln[(1+r)/(1&minus;r)]<br><strong>Sample size:</strong> n = [(Z<sub>&alpha;/2</sub> + Z<sub>&beta;</sub>) / (Z<sub>r1</sub> &minus; Z<sub>r0</sub>)]&sup2; + 3<br><br><strong>Reference:</strong> Cohen J (1988) <em>Statistical Power Analysis for the Behavioral Sciences</em>, 2nd ed. Lawrence Erlbaum.</p>
+        </div>
+      </div>
+      <div class="result-panel">
+        <div class="result-header" id="sc-result-title">RESULT</div>
+        <div class="result-body">
+          <div class="result-empty" id="sc-empty"><span class="icon">&#128300;</span><span id="sc-empty-text">Enter parameters and click Calculate</span></div>
+          <div class="result-main" id="sc-result">
+            <div class="result-number">
+              <div class="label" id="sc-n-label">REQUIRED SAMPLE SIZE</div>
+              <div class="value" id="sc-n">&mdash;</div>
+              <div class="unit" id="sc-unit">paired observations</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-row"><span class="d-label" id="sc-r1-l-disp">Fisher Z (expected r)</span><span class="d-value" id="sc-zr1">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sc-r2-l">Fisher Z (null r<sub>0</sub>)</span><span class="d-value" id="sc-zr0">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sc-r3-l">Effect size |Z<sub>r1</sub>&minus;Z<sub>r0</sub>|</span><span class="d-value" id="sc-eff">&mdash;</span></div>
+              <div class="detail-row"><span class="d-label" id="sc-r4-l">Cohen's q</span><span class="d-value" id="sc-q">&mdash;</span></div>
+            </div>
+            <div class="formula-box">
+              <div class="f-title" id="sc-formula-title">Applied Formula</div>
+              <div class="f-content" id="sc-formula-applied">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
   </div>
 
 
@@ -2320,6 +2760,36 @@
                 <td class="mono">RR, MD + DEFF</td>
                 <td class="mono">n × DEFF</td>
                 <td id="ref-row10">Community interventions, school/clinic-level trials</td>
+              </tr>
+              <tr>
+                <td>Paired (McNemar)</td>
+                <td class="mono">OR (discordant)</td>
+                <td class="mono">Connor formula</td>
+                <td id="ref-row11">Before/after studies, matched-pair designs</td>
+              </tr>
+              <tr>
+                <td>Finite Population Survey</td>
+                <td class="mono">p (proportion)</td>
+                <td class="mono">Cochran + FPC</td>
+                <td id="ref-row12">Population surveys, census sampling</td>
+              </tr>
+              <tr>
+                <td>Agreement (Kappa)</td>
+                <td class="mono">&kappa;</td>
+                <td class="mono">Donner &amp; Eliasziw</td>
+                <td id="ref-row13">Inter-rater reliability, diagnostic agreement</td>
+              </tr>
+              <tr>
+                <td>Correlation</td>
+                <td class="mono">r (Pearson)</td>
+                <td class="mono">Fisher Z transform</td>
+                <td id="ref-row14">Biomarker associations, dose-response</td>
+              </tr>
+              <tr>
+                <td>NI Survival</td>
+                <td class="mono">HR (NI margin)</td>
+                <td class="mono">Schoenfeld (NI)</td>
+                <td id="ref-row15">Non-inferiority trials with time-to-event endpoint</td>
               </tr>
             </tbody>
           </table>
@@ -2509,6 +2979,56 @@
               <p class="bib-authors">Deeks JJ, Altman DG</p>
               <p class="bib-pub">BMJ 328: 1490, 2004</p>
               <p class="bib-note">Practical guide to diagnostic test accuracy meta-analysis including DOR and likelihood ratio methods.</p>
+            </div>
+          </div>
+
+          <div class="bib-entry">
+            <div class="bib-tag bib-tag-stats">Survey</div>
+            <div class="bib-body">
+              <p class="bib-title">Sampling Techniques, 3rd ed.</p>
+              <p class="bib-authors">Cochran WG</p>
+              <p class="bib-pub">John Wiley &amp; Sons, New York, 1977</p>
+              <p class="bib-note">The definitive reference for survey sampling methodology. Chapter 4 provides the finite population correction formula implemented in the Finite Population Survey module.</p>
+            </div>
+          </div>
+
+          <div class="bib-entry">
+            <div class="bib-tag bib-tag-stats">Agreement</div>
+            <div class="bib-body">
+              <p class="bib-title">Sample size requirements for the kappa statistic</p>
+              <p class="bib-authors">Sim J, Wright CC</p>
+              <p class="bib-pub">Physical Therapy, 85(3): 257-268, 2005</p>
+              <p class="bib-note">Provides practical sample size tables and formulas for kappa-based agreement studies. Extends the work of Donner &amp; Eliasziw (1992) on large-sample variance of kappa.</p>
+            </div>
+          </div>
+
+          <div class="bib-entry">
+            <div class="bib-tag bib-tag-stats">Correlation</div>
+            <div class="bib-body">
+              <p class="bib-title">Statistical Power Analysis for the Behavioral Sciences, 2nd ed.</p>
+              <p class="bib-authors">Cohen J</p>
+              <p class="bib-pub">Lawrence Erlbaum, Hillsdale NJ, 1988</p>
+              <p class="bib-note">Foundational reference for effect size classification and power analysis. Chapter 3 covers the Fisher Z transformation for correlation testing. Defines small (r=0.10), medium (r=0.30), and large (r=0.50) effect sizes.</p>
+            </div>
+          </div>
+
+          <div class="bib-entry">
+            <div class="bib-tag bib-tag-stats">Paired</div>
+            <div class="bib-body">
+              <p class="bib-title">Sample size for matched-pair studies of binary outcome</p>
+              <p class="bib-authors">Connor RJ</p>
+              <p class="bib-pub">Biometrics, 43(1): 207-211, 1987</p>
+              <p class="bib-note">Derives the sample size formula for McNemar's test based on discordant proportions and their odds ratio. Source of the formula implemented in the Paired (McNemar) module.</p>
+            </div>
+          </div>
+
+          <div class="bib-entry">
+            <div class="bib-tag bib-tag-rct">NI Survival</div>
+            <div class="bib-body">
+              <p class="bib-title">FDA Guidance for Industry: Non-Inferiority Clinical Trials to Establish Effectiveness</p>
+              <p class="bib-authors">U.S. Food and Drug Administration</p>
+              <p class="bib-pub">FDA, November 2016</p>
+              <p class="bib-note">Official regulatory guidance on NI trial design, margin selection, and preservation of historical effect. Recommends preserving at least 50% of the active control's effect for NI margin determination.</p>
             </div>
           </div>
 
@@ -2767,6 +3287,103 @@ const i18n = {
     'rk-theory-title': 'Cluster RCT Theory',
     'rk-theory-text': 'Individuals within the same cluster share common exposures, making outcomes correlated. The Design Effect (DEFF) inflates the required sample size. Even a small ICC (0.05) with large clusters (m=50) produces DEFF=3.45, tripling the needed sample.',
     'rk-formula-text': '<strong>DEFF = 1 + (m−1) × ICC</strong><br><strong>n_cluster = n_individual × DEFF</strong><br><strong>Clusters per arm = ⌈n_cluster / m⌉</strong>',
+    'tab-survey': 'Survey & Descriptive',
+    'stab-surv-logrank': 'Log-rank Test', 'stab-surv-ni': 'Non-Inferiority Survival',
+    'stab-survey-finite': 'Finite Population', 'stab-survey-kappa': 'Agreement (Kappa)', 'stab-survey-corr': 'Correlation',
+    'stab-paired': 'Paired (McNemar)',
+    'mn-title': 'Paired Design (McNemar\'s Test)',
+    'mn-desc': 'Sample size for before/after or matched-pair studies with a binary outcome. Based on discordant pairs using McNemar\'s test.',
+    'mn-params': 'Parameters', 'mn-pd-label': 'Discordant Proportion (p<sub>d</sub>)',
+    'mn-pd-help': 'Proportion of pairs that are discordant. Estimate from pilot data or literature.',
+    'mn-or-label': 'Odds Ratio of Discordant Pairs (OR)',
+    'mn-or-help': 'Ratio of discordant pairs: (b/c) where b = +/− pairs and c = −/+ pairs.',
+    'mn-alpha-label': 'Significance Level (α)', 'mn-power-label': 'Power (1-β)',
+    'mn-btn': '▶ CALCULATE', 'mn-result-title': 'RESULT',
+    'mn-empty-text': 'Enter parameters and click Calculate',
+    'mn-n-label': 'TOTAL MATCHED PAIRS', 'mn-unit': 'matched pairs needed',
+    'mn-r1-l': 'Discordant pairs expected', 'mn-r2-l': 'Concordant pairs expected',
+    'mn-r3-l': 'Odds Ratio (input)', 'mn-r4-l': 'Total individuals',
+    'mn-formula-title': 'Applied Formula',
+    'mn-theory-title': 'Statistical Theory',
+    'mn-theory-text': 'McNemar\'s test assesses marginal homogeneity in matched-pair data with binary outcomes. Only discordant pairs contribute information. The sample size depends on the proportion of discordant pairs and the ratio of the two types of discordant pairs.',
+    'mn-formula-text': '<strong>Formula (Connor 1987):</strong><br>n = [Zα/2 + Zβ]² × p_d × (1 + 1/OR)² / (1 − 1/OR)²<br><strong>References:</strong> Connor RJ (1987); McNemar Q (1947)',
+    'sni-title': 'Non-Inferiority Survival Trial',
+    'sni-desc': 'Sample size for non-inferiority trials with time-to-event endpoints. Based on the Schoenfeld (1983) formula with non-inferiority margin on the hazard ratio scale.',
+    'sni-params': 'Parameters',
+    'sni-hr0-label': 'Non-Inferiority Margin (HR<sub>NI</sub>)',
+    'sni-hr0-help': 'Maximum acceptable hazard ratio. E.g., 1.3 means new treatment can be at most 30% worse.',
+    'sni-hr1-label': 'True Hazard Ratio (HR<sub>true</sub>)',
+    'sni-hr1-help': 'Expected true HR. Typically 1.0 (equal efficacy) for NI trials.',
+    'sni-sc-label': 'Control Median Survival (months)',
+    'sni-sc-help': 'Median survival time in the control arm.',
+    'sni-ratio-label': 'Allocation Ratio (T:C)',
+    'sni-alpha-label': 'Significance Level (α, one-sided)',
+    'sni-power-label': 'Power (1-β)',
+    'sni-accrual-label': 'Accrual Period (months)', 'sni-follow-label': 'Additional Follow-up (months)',
+    'sni-btn': '▶ CALCULATE', 'sni-result-title': 'RESULT',
+    'sni-empty-text': 'Enter parameters and click Calculate',
+    'sni-n-label': 'TOTAL PARTICIPANTS', 'sni-unit': 'participants (both arms)',
+    'sni-r1-l': 'Events required (E)', 'sni-r2-l': 'Treatment arm (n)',
+    'sni-r3-l': 'Control arm (n)', 'sni-r4-l': 'NI margin (HR)',
+    'sni-r5-l': 'Expected event probability',
+    'sni-formula-title': 'Applied Formula',
+    'sni-theory-title': 'Statistical Theory',
+    'sni-theory-text': 'Non-inferiority survival trials test H₀: HR ≥ HR_NI vs H₁: HR < HR_NI using a one-sided test. The number of events uses the Schoenfeld formula modified for the NI margin. The margin should preserve a clinically meaningful fraction of the active control\'s effect.',
+    'sni-formula-text': '<strong>Events:</strong> E = (Zα + Zβ)² × (1+r)² / (r × [ln(HR_NI) − ln(HR_true)]²)<br><strong>References:</strong> Schoenfeld DA (1983); FDA NI Guidance (2016)',
+    'sf-title': 'Finite Population Survey',
+    'sf-desc': 'Sample size for estimating a proportion in a finite (known) population. Uses Cochran\'s formula with finite population correction.',
+    'sf-params': 'Parameters',
+    'sf-N-label': 'Population Size (N)', 'sf-N-help': 'Total number of individuals in the target population.',
+    'sf-p-label': 'Expected Proportion (p)', 'sf-p-help': 'Use 0.50 for maximum sample size when no prior estimate is available.',
+    'sf-e-label': 'Margin of Error (e)', 'sf-e-help': 'Desired precision, e.g., 0.05 = ±5%.',
+    'sf-cl-label': 'Confidence Level',
+    'sf-btn': '▶ CALCULATE', 'sf-result-title': 'RESULT',
+    'sf-empty-text': 'Enter parameters and click Calculate',
+    'sf-n-label': 'REQUIRED SAMPLE SIZE', 'sf-unit': 'respondents',
+    'sf-r1-l': 'Infinite population n₀', 'sf-r2-l': 'FPC-adjusted n',
+    'sf-r3-l': 'Sampling fraction (n/N)', 'sf-r4-l': 'Population size (N)',
+    'sf-formula-title': 'Applied Formula',
+    'sf-theory-title': 'Statistical Theory',
+    'sf-theory-text': 'Cochran\'s (1977) formula first calculates the infinite-population sample size, then applies the finite population correction. When N is large relative to n₀, the correction is negligible.',
+    'sf-formula-text': '<strong>Cochran:</strong> n₀ = Z² × p(1-p) / e²<br><strong>With FPC:</strong> n = n₀ / [1 + (n₀ - 1) / N]<br><strong>Reference:</strong> Cochran WG (1977)',
+    'sk-title': 'Agreement Study (Kappa)',
+    'sk-desc': 'Sample size for inter-rater reliability studies using Cohen\'s kappa.',
+    'sk-params': 'Parameters',
+    'sk-k1-label': 'Expected Kappa (κ₁)', 'sk-k1-help': 'The kappa value you expect to observe.',
+    'sk-k0-label': 'Null Kappa (κ₀)', 'sk-k0-help': 'The kappa threshold to test against. 0.40 = at least moderate agreement.',
+    'sk-cat-label': 'Number of Categories (k)', 'sk-cat-help': 'Number of rating categories.',
+    'sk-prev-label': 'Prevalence of Positive Category', 'sk-prev-help': 'Expected prevalence. Affects variance of kappa. Use 0.50 if unknown.',
+    'sk-alpha-label': 'Significance Level (α)', 'sk-power-label': 'Power (1-β)',
+    'sk-btn': '▶ CALCULATE', 'sk-result-title': 'RESULT',
+    'sk-empty-text': 'Enter parameters and click Calculate',
+    'sk-n-label': 'REQUIRED SUBJECTS', 'sk-unit': 'subjects rated by both raters',
+    'sk-r1-l': 'Expected kappa (κ₁)', 'sk-r2-l': 'Null kappa (κ₀)',
+    'sk-r3-l': 'Variance under H₀', 'sk-r4-l': 'Variance under H₁',
+    'sk-formula-title': 'Applied Formula',
+    'sk-theory-title': 'Statistical Theory',
+    'sk-theory-text': 'Cohen\'s kappa measures agreement beyond chance. The sample size uses the large-sample variance of kappa, depending on prevalence and number of categories.',
+    'sk-formula-text': '<strong>Formula:</strong> n = [(Zα/2√V₀ + Zβ√V₁) / (κ₁ − κ₀)]²<br><strong>References:</strong> Sim & Wright (2005); Donner & Eliasziw (1992)',
+    'sc-title': 'Correlation Study',
+    'sc-desc': 'Sample size for testing whether a Pearson correlation differs from a null value. Uses Fisher\'s Z transformation.',
+    'sc-params': 'Parameters',
+    'sc-r1-label': 'Expected Correlation (r)', 'sc-r1-help': 'The correlation you expect to observe.',
+    'sc-r0-label': 'Null Correlation (r₀)', 'sc-r0-help': 'Correlation under null hypothesis. Use 0 to test for any association.',
+    'sc-alpha-label': 'Significance Level (α)', 'sc-power-label': 'Power (1-β)',
+    'sc-sides-label': 'Test Type',
+    'sc-btn': '▶ CALCULATE', 'sc-result-title': 'RESULT',
+    'sc-empty-text': 'Enter parameters and click Calculate',
+    'sc-n-label': 'REQUIRED SAMPLE SIZE', 'sc-unit': 'paired observations',
+    'sc-r1-l-disp': 'Fisher Z (expected r)', 'sc-r2-l': 'Fisher Z (null r₀)',
+    'sc-r3-l': 'Effect size |Zr1−Zr0|', 'sc-r4-l': 'Cohen\'s q',
+    'sc-formula-title': 'Applied Formula',
+    'sc-theory-title': 'Statistical Theory',
+    'sc-theory-text': 'Fisher\'s Z transformation normalizes the sampling distribution of r. The sample size formula inverts this to find n for a desired detectable difference.',
+    'sc-formula-text': '<strong>Fisher Z:</strong> Zr = 0.5 × ln[(1+r)/(1−r)]<br><strong>n =</strong> [(Zα/2 + Zβ) / (Zr1 − Zr0)]² + 3<br><strong>Reference:</strong> Cohen J (1988)',
+    'ref-row11': 'Before/after studies, matched-pair designs',
+    'ref-row12': 'Population surveys, census sampling',
+    'ref-row13': 'Inter-rater reliability, diagnostic agreement',
+    'ref-row14': 'Biomarker associations, dose-response',
+    'ref-row15': 'Non-inferiority trials with time-to-event endpoint',
     'ref-guidance-title': 'General Guidance on Assumptions',
     'ref-g1': 'α = 0.05 and 1-β = 0.80 are standard defaults. In high-stakes situations (drug approval, safety studies), consider α = 0.01 and power ≥ 0.90.',
     'ref-g2': 'Always inflate the sample size by the expected attrition rate: n_final = n_base / (1 - attrition%). For longitudinal studies, attrition of 15–30% is common.',
@@ -3000,6 +3617,103 @@ const i18n = {
     'rk-theory-title': '整群随机试验理论',
     'rk-theory-text': '同一整群内的个体共享共同的暴露，导致其结局相关。设计效应（DEFF）用于扩大样本量以弥补相关性造成的效能损失。即使 ICC 较小（如 0.05），当整群较大（m=50）时，DEFF 可达 3.45，所需样本量是普通平行试验的 3 倍以上。',
     'rk-formula-text': '<strong>DEFF = 1 + (m−1) × ICC</strong><br><strong>n整群 = n个体 × DEFF</strong><br><strong>每组整群数 = ⌈n整群 / m⌉</strong>',
+    'tab-survey': '调查研究',
+    'stab-surv-logrank': '对数秩检验', 'stab-surv-ni': '非劣效性生存',
+    'stab-survey-finite': '有限总体', 'stab-survey-kappa': '一致性（Kappa）', 'stab-survey-corr': '相关性',
+    'stab-paired': '配对（McNemar）',
+    'mn-title': '配对设计（McNemar 检验）',
+    'mn-desc': '适用于前后对比或配对研究的二分类结局样本量计算。基于不一致对的 McNemar 检验。',
+    'mn-params': '参数设置', 'mn-pd-label': '不一致比例 (p<sub>d</sub>)',
+    'mn-pd-help': '不一致配对的比例。根据预试验数据或文献估计。',
+    'mn-or-label': '不一致对的比值比 (OR)',
+    'mn-or-help': '不一致对的比值：(b/c)，其中 b = +/− 对，c = −/+ 对。',
+    'mn-alpha-label': '显著性水平 (α)', 'mn-power-label': '统计效能 (1-β)',
+    'mn-btn': '▶ 开始计算', 'mn-result-title': '计算结果',
+    'mn-empty-text': '输入参数后点击计算',
+    'mn-n-label': '所需配对总数', 'mn-unit': '对',
+    'mn-r1-l': '预期不一致对数', 'mn-r2-l': '预期一致对数',
+    'mn-r3-l': '输入比值比 (OR)', 'mn-r4-l': '总个体数',
+    'mn-formula-title': '应用公式',
+    'mn-theory-title': '统计学原理',
+    'mn-theory-text': 'McNemar 检验评估配对数据中边际齐性。只有不一致对贡献信息。样本量取决于不一致比例和两种不一致对的比值。',
+    'mn-formula-text': '<strong>Connor (1987) 公式：</strong><br>n = [Zα/2 + Zβ]² × p_d × (1 + 1/OR)² / (1 − 1/OR)²<br><strong>参考文献：</strong> Connor RJ (1987)；McNemar Q (1947)',
+    'sni-title': '非劣效性生存试验',
+    'sni-desc': '适用于时间-事件终点的非劣效性试验样本量计算。基于 Schoenfeld (1983) 公式加非劣效性界值修正。',
+    'sni-params': '参数设置',
+    'sni-hr0-label': '非劣效性界值 (HR<sub>NI</sub>)',
+    'sni-hr0-help': '可接受的最大风险比。如 1.3 表示新治疗最多比对照差 30%。',
+    'sni-hr1-label': '真实风险比 (HR<sub>true</sub>)',
+    'sni-hr1-help': '预期真实 HR。非劣效性试验通常设为 1.0（疗效相当）。',
+    'sni-sc-label': '对照组中位生存期（月）',
+    'sni-sc-help': '对照组的中位生存时间。',
+    'sni-ratio-label': '分配比例（治疗:对照）',
+    'sni-alpha-label': '显著性水平（α，单侧）',
+    'sni-power-label': '统计效能 (1-β)',
+    'sni-accrual-label': '入组期（月）', 'sni-follow-label': '额外随访时间（月）',
+    'sni-btn': '▶ 开始计算', 'sni-result-title': '计算结果',
+    'sni-empty-text': '输入参数后点击计算',
+    'sni-n-label': '总参与人数', 'sni-unit': '例（两组合计）',
+    'sni-r1-l': '所需事件数 (E)', 'sni-r2-l': '治疗组 (n)',
+    'sni-r3-l': '对照组 (n)', 'sni-r4-l': '非劣效性界值 (HR)',
+    'sni-r5-l': '预期事件发生概率',
+    'sni-formula-title': '应用公式',
+    'sni-theory-title': '统计学原理',
+    'sni-theory-text': '非劣效性生存试验检验 H₀: HR ≥ HR_NI vs H₁: HR < HR_NI（单侧检验）。事件数采用 Schoenfeld 公式的非劣效性修正版。界值应保留对照组历史疗效的临床有意义部分。',
+    'sni-formula-text': '<strong>事件数：</strong> E = (Zα + Zβ)² × (1+r)² / (r × [ln(HR_NI) − ln(HR_true)]²)<br><strong>参考文献：</strong> Schoenfeld DA (1983)；FDA 非劣效性指导 (2016)',
+    'sf-title': '有限总体调查',
+    'sf-desc': '已知总体大小时估计比例的样本量计算。采用 Cochran 公式加有限总体校正。',
+    'sf-params': '参数设置',
+    'sf-N-label': '总体大小 (N)', 'sf-N-help': '目标总体中的个体总数。',
+    'sf-p-label': '预期比例 (p)', 'sf-p-help': '无先验估计时使用 0.50（最保守）。',
+    'sf-e-label': '误差范围 (e)', 'sf-e-help': '期望精度，如 0.05 = ±5%。',
+    'sf-cl-label': '置信水平',
+    'sf-btn': '▶ 开始计算', 'sf-result-title': '计算结果',
+    'sf-empty-text': '输入参数后点击计算',
+    'sf-n-label': '所需样本量', 'sf-unit': '名受访者',
+    'sf-r1-l': '无限总体 n₀', 'sf-r2-l': '有限总体校正后 n',
+    'sf-r3-l': '抽样比 (n/N)', 'sf-r4-l': '总体大小 (N)',
+    'sf-formula-title': '应用公式',
+    'sf-theory-title': '统计学原理',
+    'sf-theory-text': 'Cochran (1977) 公式先计算无限总体样本量，再应用有限总体校正。当 N 远大于 n₀ 时，校正可忽略不计。',
+    'sf-formula-text': '<strong>Cochran：</strong> n₀ = Z² × p(1-p) / e²<br><strong>校正后：</strong> n = n₀ / [1 + (n₀ - 1) / N]<br><strong>参考文献：</strong> Cochran WG (1977)',
+    'sk-title': '一致性研究（Kappa）',
+    'sk-desc': '基于 Cohen\'s kappa 的评估者间信度研究样本量计算。',
+    'sk-params': '参数设置',
+    'sk-k1-label': '预期 Kappa (κ₁)', 'sk-k1-help': '预期观察到的 kappa 值。',
+    'sk-k0-label': '零假设 Kappa (κ₀)', 'sk-k0-help': '待检验的 kappa 阈值。0.40 = 至少中等一致性。',
+    'sk-cat-label': '分类数 (k)', 'sk-cat-help': '评价类别数。二分类 (2) 最常见。',
+    'sk-prev-label': '阳性类别患病率', 'sk-prev-help': '目标类别的预期患病率。影响 kappa 方差。未知时使用 0.50。',
+    'sk-alpha-label': '显著性水平 (α)', 'sk-power-label': '统计效能 (1-β)',
+    'sk-btn': '▶ 开始计算', 'sk-result-title': '计算结果',
+    'sk-empty-text': '输入参数后点击计算',
+    'sk-n-label': '所需受试者数', 'sk-unit': '名（由两位评估者同时评价）',
+    'sk-r1-l': '预期 kappa (κ₁)', 'sk-r2-l': '零假设 kappa (κ₀)',
+    'sk-r3-l': 'H₀ 下方差', 'sk-r4-l': 'H₁ 下方差',
+    'sk-formula-title': '应用公式',
+    'sk-theory-title': '统计学原理',
+    'sk-theory-text': 'Cohen\'s kappa 衡量超出机会一致性的程度。样本量公式利用 kappa 的大样本方差，该方差取决于患病率和分类数。',
+    'sk-formula-text': '<strong>公式：</strong> n = [(Zα/2√V₀ + Zβ√V₁) / (κ₁ − κ₀)]²<br><strong>参考文献：</strong> Sim & Wright (2005)；Donner & Eliasziw (1992)',
+    'sc-title': '相关性研究',
+    'sc-desc': '检验 Pearson 相关系数是否偏离零假设值的样本量计算。采用 Fisher Z 变换。',
+    'sc-params': '参数设置',
+    'sc-r1-label': '预期相关系数 (r)', 'sc-r1-help': '预期在总体中观察到的相关系数。',
+    'sc-r0-label': '零假设相关系数 (r₀)', 'sc-r0-help': '零假设下的相关系数。使用 0 检验是否存在关联。',
+    'sc-alpha-label': '显著性水平 (α)', 'sc-power-label': '统计效能 (1-β)',
+    'sc-sides-label': '检验类型',
+    'sc-btn': '▶ 开始计算', 'sc-result-title': '计算结果',
+    'sc-empty-text': '输入参数后点击计算',
+    'sc-n-label': '所需样本量', 'sc-unit': '组配对观测',
+    'sc-r1-l-disp': 'Fisher Z（预期 r）', 'sc-r2-l': 'Fisher Z（零假设 r₀）',
+    'sc-r3-l': '效应量 |Zr1−Zr0|', 'sc-r4-l': 'Cohen\'s q',
+    'sc-formula-title': '应用公式',
+    'sc-theory-title': '统计学原理',
+    'sc-theory-text': 'Fisher Z 变换使 r 的抽样分布正态化。样本量公式利用该变换求解给定检测差异所需的 n。',
+    'sc-formula-text': '<strong>Fisher Z：</strong> Zr = 0.5 × ln[(1+r)/(1−r)]<br><strong>n =</strong> [(Zα/2 + Zβ) / (Zr1 − Zr0)]² + 3<br><strong>参考文献：</strong> Cohen J (1988)',
+    'ref-row11': '前后对比研究、配对设计',
+    'ref-row12': '人群调查、普查抽样',
+    'ref-row13': '评估者间信度、诊断一致性',
+    'ref-row14': '生物标志物关联、剂量-反应',
+    'ref-row15': '时间-事件终点的非劣效性试验',
     'ref-guidance-title': '假设条件使用指南',
     'ref-g1': 'α = 0.05 和 1-β = 0.80 是标准默认值。在高风险情境（药品审批、安全性研究）中，建议使用 α = 0.01 且效能 ≥ 0.90。',
     'ref-g2': '应按预期脱落率扩大样本量：n最终 = n基础 / (1 - 脱落率%)。纵向研究的脱落率通常为 15–30%。',
@@ -3070,13 +3784,35 @@ function setLang(l) {
     rkOut.options[0].text = t['rk-outcome-1'];
     rkOut.options[1].text = t['rk-outcome-2'];
   }
+  // Survey: correlation test type
+  const scSides = document.getElementById('sc-sides');
+  if (scSides) {
+    scSides.options[0].text = l === 'zh' ? '双侧（默认）' : 'Two-sided (default)';
+    scSides.options[1].text = l === 'zh' ? '单侧' : 'One-sided';
+  }
+  // Survey: confidence level
+  const sfCl = document.getElementById('sf-cl');
+  if (sfCl) {
+    sfCl.options[0].text = '95%';
+    sfCl.options[1].text = '99%';
+    sfCl.options[2].text = '90%';
+  }
+  // NI Survival: alpha labels
+  const sniAlpha = document.getElementById('sni-alpha');
+  if (sniAlpha) {
+    sniAlpha.options[0].text = l === 'zh' ? '0.025 — 标准（单侧）' : '0.025 — Standard (one-sided)';
+    sniAlpha.options[1].text = '0.05';
+    sniAlpha.options[2].text = '0.01';
+  }
 }
 
 const _activeSubTab = {
   prevalence:    'proportion',
   comparison:    'twoprop',
   observational: 'cohort',
-  rct:           'rct-parallel'
+  rct:           'rct-parallel',
+  survival:      'surv-logrank',
+  survey:        'survey-finite'
 };
 
 function showGroup(group) {
@@ -3098,10 +3834,12 @@ function showSub(group, subId) {
 function showTab(id) {
   const map = {
     proportion:['prevalence','proportion'], mean:['prevalence','mean'],
-    twoprop:['comparison','twoprop'], twomean:['comparison','twomean'], kprop:['comparison','kprop'],
+    twoprop:['comparison','twoprop'], twomean:['comparison','twomean'], kprop:['comparison','kprop'], paired:['comparison','paired'],
     cohort:['observational','cohort'], casecontrol:['observational','casecontrol'],
     'rct-parallel':['rct','rct-parallel'], 'rct-crossover':['rct','rct-crossover'], 'rct-cluster':['rct','rct-cluster'],
-    survival:['survival',null], reference:['reference',null],
+    'surv-logrank':['survival','surv-logrank'], 'surv-ni':['survival','surv-ni'],
+    'survey-finite':['survey','survey-finite'], 'survey-kappa':['survey','survey-kappa'], 'survey-corr':['survey','survey-corr'],
+    survival:['survival','surv-logrank'], reference:['reference',null],
     nnt:['effect','nnt'], orrr:['effect','orrr'],
     incprev:['incprev',null], diagnostic:['diagnostic',null],
     chi2x2:['chisq','chi2x2'], chirxc:['chisq','chirxc'],
@@ -3855,7 +4593,229 @@ function normQuantile(p) {
   return p < 0.5 ? -(t - num / den) : (t - num / den);
 }
 
+// === PAIRED McNEMAR ===
+function calcMcNemar() {
+  const pd = parseFloat(document.getElementById('mn-pd').value);
+  const or = parseFloat(document.getElementById('mn-or').value);
+  const alpha = parseFloat(document.getElementById('mn-alpha').value);
+  const power = parseFloat(document.getElementById('mn-power').value);
 
+  if (pd <= 0 || pd >= 1) return showError('mn', 'Discordant proportion must be between 0 and 1.');
+  if (or <= 0 || Math.abs(or - 1) < 0.001) return showError('mn', 'Odds Ratio must be positive and ≠ 1.');
+
+  const za = getZ(alpha);
+  const zb = getZb(power);
+
+  // Connor (1987) formula: n = (Za/2 + Zb)^2 * pd * (1 + 1/OR)^2 / (1 - 1/OR)^2
+  const num = Math.pow(za + zb, 2) * pd * Math.pow(1 + 1/or, 2);
+  const den = Math.pow(1 - 1/or, 2);
+  const n = Math.ceil(num / den);
+  const nDisc = Math.ceil(n * pd);
+  const nConc = n - nDisc;
+
+  const formula = `n = (Zα/2 + Zβ)² × pd × (1+1/OR)² / (1-1/OR)²\n= (${za.toFixed(3)} + ${zb.toFixed(3)})² × ${pd} × (1+1/${or})² / (1-1/${or})²\n= ${n}`;
+
+  showResult('mn', n, {
+    'mn-disc': nDisc.toLocaleString(),
+    'mn-conc': nConc.toLocaleString(),
+    'mn-or-disp': or.toFixed(2),
+    'mn-nind': (n * 2).toLocaleString()
+  }, formula);
+}
+
+// === NON-INFERIORITY SURVIVAL ===
+function calcSurvNI() {
+  const hrNI = parseFloat(document.getElementById('sni-hr0').value);
+  const hrTrue = parseFloat(document.getElementById('sni-hr1').value);
+  const medianControl = parseFloat(document.getElementById('sni-sc').value);
+  const ratio = parseFloat(document.getElementById('sni-ratio').value);
+  const alpha = parseFloat(document.getElementById('sni-alpha').value);
+  const power = parseFloat(document.getElementById('sni-power').value);
+  const accrual = parseFloat(document.getElementById('sni-accrual').value);
+  const followup = parseFloat(document.getElementById('sni-follow').value);
+
+  if (hrNI <= 1) return showError('sni', 'NI margin HR must be > 1.');
+  if (hrTrue <= 0) return showError('sni', 'True HR must be positive.');
+  if (hrTrue >= hrNI) return showError('sni', 'True HR must be less than NI margin HR.');
+  if (medianControl <= 0) return showError('sni', 'Median survival must be positive.');
+
+  // One-sided test: use alpha directly (not alpha/2)
+  const za = getZ(alpha * 2, 2); // getZ expects two-sided alpha, so pass alpha*2 to get one-sided z
+  const zb = getZb(power);
+
+  const lnDiff = Math.log(hrNI) - Math.log(hrTrue);
+  if (Math.abs(lnDiff) < 0.0001) return showError('sni', 'Margin and true HR are too similar.');
+
+  // Schoenfeld NI formula: E = (Za + Zb)^2 * (1+r)^2 / (r * lnDiff^2)
+  const r = ratio;
+  const events = Math.ceil(Math.pow(za + zb, 2) * Math.pow(1 + r, 2) / (r * lnDiff * lnDiff));
+
+  // Estimate event probability from exponential model
+  const lambdaC = Math.log(2) / medianControl;
+  const lambdaT = lambdaC * hrTrue;
+  const totalTime = accrual + followup;
+
+  // Average event probability (uniform accrual)
+  const epC = 1 - (1 / (lambdaC * accrual)) * (Math.exp(-lambdaC * followup) - Math.exp(-lambdaC * totalTime));
+  const epT = 1 - (1 / (lambdaT * accrual)) * (Math.exp(-lambdaT * followup) - Math.exp(-lambdaT * totalTime));
+  const avgEP = (epT * r + epC) / (1 + r);
+  const avgEPSafe = Math.max(avgEP, 0.05); // floor to avoid division by near-zero
+
+  const totalN = Math.ceil(events / avgEPSafe);
+  const nT = Math.ceil(totalN * r / (1 + r));
+  const nC = totalN - nT;
+
+  const formula = `E = (Zα + Zβ)² × (1+r)² / (r × [ln(HR_NI)-ln(HR_true)]²)\n= (${za.toFixed(3)} + ${zb.toFixed(3)})² × (1+${r})² / (${r} × [ln(${hrNI})-ln(${hrTrue})]²)\n= (${za.toFixed(3)} + ${zb.toFixed(3)})² × ${Math.pow(1+r,2).toFixed(1)} / (${r} × ${(lnDiff*lnDiff).toFixed(4)})\n= ${events} events\nn = E / avg_event_prob = ${events} / ${avgEPSafe.toFixed(3)} = ${totalN}`;
+
+  showResult('sni', totalN, {
+    'sni-events': events.toLocaleString(),
+    'sni-nt': nT.toLocaleString(),
+    'sni-nc': nC.toLocaleString(),
+    'sni-margin-disp': hrNI.toFixed(2),
+    'sni-ep': (avgEPSafe * 100).toFixed(1) + '%'
+  }, formula);
+}
+
+// === FINITE POPULATION SURVEY ===
+function calcFinitePop() {
+  const N = parseFloat(document.getElementById('sf-N').value);
+  const p = parseFloat(document.getElementById('sf-p').value);
+  const e = parseFloat(document.getElementById('sf-e').value);
+  const cl = parseFloat(document.getElementById('sf-cl').value);
+
+  if (N < 10) return showError('sf', 'Population size must be at least 10.');
+  if (p <= 0 || p >= 1) return showError('sf', 'Proportion must be between 0 and 1.');
+  if (e <= 0 || e >= 0.5) return showError('sf', 'Margin of error must be between 0 and 0.5.');
+
+  // Map confidence level to Z
+  const zMap = { 0.90: 1.645, 0.95: 1.960, 0.99: 2.576 };
+  const z = zMap[cl] || 1.960;
+
+  // Cochran's formula
+  const n0 = Math.ceil(z * z * p * (1 - p) / (e * e));
+  // FPC adjustment
+  const n = Math.ceil(n0 / (1 + (n0 - 1) / N));
+  const frac = (n / N * 100).toFixed(1);
+
+  const formula = `n₀ = Z² × p(1-p) / e²\n= ${z.toFixed(3)}² × ${p}×${(1-p).toFixed(3)} / ${e}²\n= ${n0}\n\nn = n₀ / [1 + (n₀-1)/N]\n= ${n0} / [1 + (${n0}-1)/${N}]\n= ${n}`;
+
+  showResult('sf', n, {
+    'sf-n0': n0.toLocaleString(),
+    'sf-nfpc': n.toLocaleString(),
+    'sf-frac': frac + '%',
+    'sf-N-disp': N.toLocaleString()
+  }, formula);
+}
+
+// === AGREEMENT KAPPA ===
+function calcKappa() {
+  const k1 = parseFloat(document.getElementById('sk-k1').value);
+  const k0 = parseFloat(document.getElementById('sk-k0').value);
+  const nCat = parseInt(document.getElementById('sk-cat').value);
+  const prev = parseFloat(document.getElementById('sk-prev').value);
+  const alpha = parseFloat(document.getElementById('sk-alpha').value);
+  const power = parseFloat(document.getElementById('sk-power').value);
+
+  if (k1 <= k0) return showError('sk', 'Expected kappa must be greater than null kappa.');
+  if (k1 <= 0 || k1 >= 1) return showError('sk', 'Expected kappa must be between 0 and 1.');
+  if (k0 < 0 || k0 >= 1) return showError('sk', 'Null kappa must be between 0 and 1.');
+  if (prev <= 0 || prev >= 1) return showError('sk', 'Prevalence must be between 0 and 1.');
+
+  const za = getZ(alpha);
+  const zb = getZb(power);
+
+  // Compute variance of kappa under H0 and H1
+  // For binary case (Donner & Eliasziw 1992; Sim & Wright 2005)
+  // pe = expected agreement by chance
+  const pe = prev * prev + (1 - prev) * (1 - prev);
+
+  // Variance of kappa approximation (Fleiss et al. 1969, simplified for binary)
+  // V(kappa) ≈ [1/(n*(1-pe)^2)] * [pe + pe^2 - Σpi*(ri1+ci1)^2]
+  // Simplified approximation for hypothesis testing:
+  // Under H0: V0 = [1/(1-pe)^2] * [pe(1-pe) - (some correction)]
+  // We use the Donner-Eliasziw large sample formula:
+  // V(kappa) ≈ A/(n*(1-pe)^2), where A depends on the marginals
+
+  // For binary: use the formula from Sim & Wright (2005) Table 2
+  // Approximation: V ≈ (1/(1-pe)^2) * [pe + pe^2 - Σ pi_j (pi_j. + p_.j)^2] / n
+  // Under kappa = k: po = pe + k*(1-pe); agreement = po
+  // For binary with prevalence prev:
+  function kappaVariance(kappa, pe_, prev_) {
+    const po = pe_ + kappa * (1 - pe_);
+    // a = P(both raters say +) = prev_^2 + kappa*(prev_ - prev_^2)... complex
+    // Use simplified Fleiss variance:
+    // V = 2/(n*(1-pe)^2) * [(pe - (2*prev-1)^2 * pe^2) / (1-pe) + correction]
+    // Simpler approach from Cantor (1996):
+    const pPos = prev_;
+    const pNeg = 1 - prev_;
+    // Cell probabilities under kappa:
+    const a11 = pPos * pPos + kappa * pPos * pNeg; // both positive
+    const a22 = pNeg * pNeg + kappa * pPos * pNeg; // both negative
+    const a12 = pPos * pNeg * (1 - kappa); // +/-
+    const a21 = pPos * pNeg * (1 - kappa); // -/+
+
+    // Large sample variance (Fleiss 1981, eq 13.15-13.20):
+    const A = a11 * (1 - (pPos + pPos) * (1 - kappa)) ** 2 +
+              a22 * (1 - (pNeg + pNeg) * (1 - kappa)) ** 2;
+    const B = (1 - kappa) ** 2 * (
+              a12 * (pNeg + pPos) ** 2 + a21 * (pPos + pNeg) ** 2);
+    const C = (kappa - pe_ * (1 - kappa)) ** 2;
+
+    return (A + B - C) / ((1 - pe_) ** 2);
+  }
+
+  const v0 = kappaVariance(k0, pe, prev);
+  const v1 = kappaVariance(k1, pe, prev);
+
+  // Ensure variances are positive
+  const sv0 = Math.max(v0, 0.001);
+  const sv1 = Math.max(v1, 0.001);
+
+  const n = Math.ceil(Math.pow(za * Math.sqrt(sv0) + zb * Math.sqrt(sv1), 2) / Math.pow(k1 - k0, 2));
+
+  const formula = `n = [(Zα/2×√V₀ + Zβ×√V₁) / (κ₁−κ₀)]²\n= [(${za.toFixed(3)}×√${sv0.toFixed(4)} + ${zb.toFixed(3)}×√${sv1.toFixed(4)}) / (${k1}-${k0})]²\n= ${n}`;
+
+  showResult('sk', n, {
+    'sk-k1-disp': k1.toFixed(2),
+    'sk-k0-disp': k0.toFixed(2),
+    'sk-v0': sv0.toFixed(4),
+    'sk-v1': sv1.toFixed(4)
+  }, formula);
+}
+
+// === CORRELATION ===
+function calcCorrelation() {
+  const r1 = parseFloat(document.getElementById('sc-r1').value);
+  const r0 = parseFloat(document.getElementById('sc-r0').value);
+  const alpha = parseFloat(document.getElementById('sc-alpha').value);
+  const power = parseFloat(document.getElementById('sc-power').value);
+  const sides = parseInt(document.getElementById('sc-sides').value);
+
+  if (Math.abs(r1) >= 1) return showError('sc', 'Expected correlation must be between -1 and 1 (exclusive).');
+  if (Math.abs(r0) >= 1) return showError('sc', 'Null correlation must be between -1 and 1 (exclusive).');
+  if (Math.abs(r1 - r0) < 0.001) return showError('sc', 'Expected and null correlations must differ.');
+
+  const za = getZ(alpha, sides);
+  const zb = getZb(power);
+
+  // Fisher Z transformation
+  const zr1 = 0.5 * Math.log((1 + r1) / (1 - r1));
+  const zr0 = 0.5 * Math.log((1 + r0) / (1 - r0));
+  const diff = Math.abs(zr1 - zr0);
+
+  // n = [(Za + Zb) / diff]^2 + 3
+  const n = Math.ceil(Math.pow((za + zb) / diff, 2) + 3);
+  const q = diff; // Cohen's q = |Zr1 - Zr0|
+
+  const formula = `Zr1 = 0.5×ln[(1+${r1})/(1-${r1})] = ${zr1.toFixed(4)}\nZr0 = 0.5×ln[(1+${r0})/(1-${r0})] = ${zr0.toFixed(4)}\nn = [(Zα + Zβ) / |Zr1-Zr0|]² + 3\n= [(${za.toFixed(3)} + ${zb.toFixed(3)}) / ${diff.toFixed(4)}]² + 3\n= ${n}`;
+
+  showResult('sc', n, {
+    'sc-zr1': zr1.toFixed(4),
+    'sc-zr0': zr0.toFixed(4),
+    'sc-eff': diff.toFixed(4),
+    'sc-q': q.toFixed(3) + (q < 0.1 ? ' (trivial)' : q < 0.3 ? ' (small)' : q < 0.5 ? ' (medium)' : ' (large)')
+  }, formula);
+}
 
 
 
